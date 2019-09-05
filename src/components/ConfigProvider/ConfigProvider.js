@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { isWebView } from '../../lib/webview';
+import vkConnect from '@vkontakte/vk-connect';
 
 export default class ConfigProvider extends React.Component {
   constructor (props, context) {
@@ -26,7 +26,7 @@ export default class ConfigProvider extends React.Component {
 
   static defaultProps = {
     webviewType: 'internal',
-    isWebView,
+    isWebView: vkConnect.isWebView(),
     scheme: 'client_light'
   };
 
