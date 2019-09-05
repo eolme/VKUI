@@ -1,7 +1,7 @@
 {
   "name": "@vkontakte/vkui",
   "version": "2.29.0",
-  "main": "dist/index.js",
+  "main": "dist/commonjs/index.js",
   "module": "dist/es6/index.js",
   "typings": "dist/index.d.ts",
   "license": "MIT",
@@ -10,8 +10,8 @@
   "homepage": "https://vkcom.github.io/vkui-styleguide",
   "defaultSchemeId": "client_light",
   "sideEffects": [
-    "./dist/lib/polyfills.js",
-    "./dist/index.js",
+    "./dist/commonjs/lib/polyfills.js",
+    "./dist/commonjs/index.js",
     "./dist/es6/lib/polyfills.js",
     "./dist/es6/index.js",
     "*.css"
@@ -88,12 +88,11 @@
     "postcss-dev": "postcss src/styles/styles.css --output dist/vkui.css --watch --verbose --no-map",
     "babel-dev": "babel src/ --out-dir dist/ --extensions .tsx,.jsx,.ts,.js --watch",
     "tsc-dev": "tsc --noEmit --watch --preserveWatchOutput",
-    "build": "npm run tsc && npm run babel && npm run tsc:es6 && npm run babel:es6 && npm run webpack && npm run postcss && cp ./src/styles/client_light.css ./dist/default_scheme.css",
-    "webpack": "NODE_ENV=production webpack",
+    "build": "npm run tsc && npm run babel && npm run tsc:es6 && npm run babel:es6 && npm run postcss && cp ./src/styles/client_light.css ./dist/default_scheme.css",
     "postcss": "NODE_ENV=production postcss src/styles/styles.css --output dist/vkui.css --verbose",
-    "babel": "NODE_ENV=production babel src/ --out-dir dist/ --source-maps --extensions .tsx,.jsx,.ts,.js",
+    "babel": "NODE_ENV=production babel src/ --out-dir dist/commonjs/ --source-maps --extensions .tsx,.jsx,.ts,.js",
     "babel:es6": "NODE_ENV=production babel --config-file ./babel.es6.config.js src/ --out-dir dist/es6/ --source-maps --extensions .tsx,.jsx,.ts,.js",
-    "tsc": "NODE_ENV=production tsc --emitDeclarationOnly --declaration",
+    "tsc": "NODE_ENV=production tsc --emitDeclarationOnly --declaration --outDir dist/commonjs/",
     "tsc:es6": "NODE_ENV=production tsc --emitDeclarationOnly --declaration --outDir dist/es6/",
     "clear": "rm -rf dist/*",
     "test": "tsc --noEmit && eslint --ext .tsx,.jsx,.ts,.js src/ && stylelint './src/**/*.css'"
