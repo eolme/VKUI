@@ -1,8 +1,6 @@
 const path = require('path');
-const webpackConfig = require('../webpack.config');
+const webpackConfig = require('./webpack.config');
 const merge = require('webpack-merge');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const postcssConfig = require('../postcss.config');
 
 module.exports = {
   title: 'VKUI styleguide',
@@ -79,13 +77,11 @@ module.exports = {
           '../src/components/Switch/Switch.js',
           '../src/components/InfoRow/InfoRow.js',
           '../src/components/Avatar/Avatar.js',
-          '../src/components/Entity/Entity.js',
           '../src/components/Gallery/Gallery.js',
           '../src/components/Progress/Progress.js',
           '../src/components/Search/Search.js',
           '../src/components/Tabs/Tabs.js',
           '../src/components/TabsItem/TabsItem.js',
-          '../src/components/FixedTabs/FixedTabs.js',
           '../src/components/Tooltip/Tooltip.js',
           '../src/components/PullToRefresh/PullToRefresh.js',
           '../src/components/Counter/Counter.tsx',
@@ -152,29 +148,6 @@ module.exports = {
     }
   },
   webpackConfig: merge(webpackConfig, {
-    module: {
-      rules: [{
-        test: /\.css$/,
-        use: [
-          MiniCssExtractPlugin.loader,
-          {
-            loader: 'css-loader',
-            options: {
-              importLoaders: 1
-            }
-          },
-          {
-            loader: 'postcss-loader',
-            options: {
-              plugins: () => postcssConfig.plugins
-            }
-          }
-        ]
-      }]
-    },
-    plugins: [
-      new MiniCssExtractPlugin('[name].css')
-    ],
     resolve: {
       alias: {
         'rsg-components/Preview': path.join(__dirname, './Components/Preview')

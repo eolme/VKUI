@@ -1,5 +1,7 @@
 const path = require('path');
 const merge = require('webpack-merge');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const postcssConfig = require('../postcss.config');
 
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -24,6 +26,24 @@ const config = {
         test: /\.(ts|tsx)?$/,
         exclude: /node_modules/,
         loader: ['babel-loader', 'ts-loader']
+      },
+      {
+        test: /\.css$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          {
+            loader: 'css-loader',
+            options: {
+              importLoaders: 1
+            }
+          },
+          {
+            loader: 'postcss-loader',
+            options: {
+              plugins: () => postcssConfig.plugins
+            }
+          }
+        ]
       }
     ]
   },
@@ -34,6 +54,9 @@ const config = {
   stats: {
     children: false
   },
+  plugins: [
+    new MiniCssExtractPlugin('[name].css')
+  ],
   externals: [
     {
       'react': 'react',
