@@ -1,50 +1,60 @@
-import React, { FunctionComponent, HTMLAttributes } from 'react';
-import classNames from '../../lib/classNames';
-import Icon24Dropdown from '@vkontakte/icons/dist/24/dropdown';
+import { FunctionComponent, HTMLAttributes } from 'react';
+import { classNames } from '../../lib/classNames';
+import { Icon24Dropdown, Icon20Dropdown } from '@vkontakte/icons';
 import FormField from '../FormField/FormField';
-import { HasAlign, HasFormLabels, HasFormStatus, HasRootRef } from '../../types';
+import { HasAlign, HasRootRef } from '../../types';
+import { withAdaptivity, AdaptivityProps, SizeType } from '../../hoc/withAdaptivity';
+import { usePlatform } from '../../hooks/usePlatform';
+import { getClassName } from '../..';
+import Headline from '../Typography/Headline/Headline';
+import Text from '../Typography/Text/Text';
+import { VKCOM } from '../../lib/platform';
 
 export interface SelectMimicryProps extends
   HTMLAttributes<HTMLElement>,
   HasAlign,
-  HasFormStatus,
-  HasFormLabels,
-  HasRootRef<HTMLElement> {
+  HasRootRef<HTMLElement>,
+  AdaptivityProps {
   multiline?: boolean;
   disabled?: boolean;
 }
 
 const SelectMimicry: FunctionComponent<SelectMimicryProps> = ({
-  className,
   tabIndex,
   placeholder,
   children,
   align,
-  status,
   getRootRef,
   multiline,
   disabled,
   onClick,
+  sizeX,
+  sizeY,
   ...restProps
 }: SelectMimicryProps) => {
+  const platform = usePlatform();
+
+  const TypographyComponent = platform === VKCOM || sizeY === SizeType.COMPACT ? Text : Headline;
+
   return (
     <FormField
       {...restProps}
       tabIndex={disabled ? null : tabIndex}
-      className={classNames('Select', 'Select--mimicry', {
+      vkuiClass={classNames(getClassName('Select', platform), 'Select--mimicry', {
         'Select--not-selected': !children,
         'Select--multiline': multiline,
         'Select--disabled': disabled,
         [`Select--align-${align}`]: !!align,
-      }, className)}
+        [`Select--sizeX--${sizeX}`]: !!sizeX,
+        [`Select--sizeY--${sizeY}`]: !!sizeY,
+      })}
       getRootRef={getRootRef}
-      status={status}
       onClick={disabled ? null : onClick}
     >
-      <div className="Select__container">
-        <div className="Select__title">{children || placeholder}</div>
-        <Icon24Dropdown />
-      </div>
+      <TypographyComponent weight="regular" vkuiClass="Select__container">
+        <div vkuiClass="Select__title">{children || placeholder}</div>
+        {sizeY === SizeType.COMPACT ? <Icon20Dropdown /> : <Icon24Dropdown />}
+      </TypographyComponent>
     </FormField>
   );
 };
@@ -53,4 +63,7 @@ SelectMimicry.defaultProps = {
   tabIndex: 0,
 };
 
-export default SelectMimicry;
+export default withAdaptivity(SelectMimicry, {
+  sizeX: true,
+  sizeY: true,
+});

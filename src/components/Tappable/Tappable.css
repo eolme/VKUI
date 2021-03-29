@@ -1,17 +1,70 @@
-.Tappable {}
+.Tappable {
+  position: relative;
+}
+
+.Tappable:not([disabled]) {
+  cursor: pointer;
+}
+
+/**
+ * active
+ */
+
+.Tappable--active-background:not([disabled]) {
+  background: var(--background_highlighted);
+}
+
+.Tappable--active-opacity:not([disabled]) {
+  opacity: .7;
+}
+
+/**
+ * hover
+ */
+
+.Tappable__hoverShadow {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+.Tappable--hover-background > .Tappable__hoverShadow {
+  background: var(--background_hover);
+}
+
+.Tappable--hover-opacity {
+  opacity: .8;
+}
+
+/**
+ * mouse
+ */
+
+.Tappable--mouse {
+  transition: opacity .15s ease-out;
+}
+
+.Tappable--mouse .Tappable__hoverShadow {
+  transition: background-color .15s ease-out;
+}
 
 /**
  * iOS tappable
  */
 .Tappable--ios {
+  position: relative;
+  border-radius: 10px;
   transition: background-color .15s ease-out;
-  }
+}
 
-/** TODO: Переписать без использования !important */
-.Tappable--ios.Tappable--active:not([disabled]):not(.TabsItem):not(.PanelHeaderButton):not(.Button):not(.PanelHeaderContent__in):not(.ActionSheetItem):not(.Banner__in) {
-  background: var(--separator_common) !important;
+.Tappable--ios.Tappable--active-background.Tappable--active:not([disabled]) {
   transition: none;
-  }
+}
 
 /**
  * Android tappable
@@ -19,41 +72,51 @@
 .Tappable--android {
   position: relative;
   transition: background-color .15s ease-out;
-  }
+  border-radius: 8px;
+}
 
-.Tappable--android.Tappable--active:not([disabled]):not(.TabsItem):not(.PanelHeaderButton):not(.Button):not(.PanelHeaderContent__in) {
-  background: var(--background_highlighted) !important;
-  }
+.Tappable--android .Tappable__waves {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: inherit;
+  /* Fix for Safari: css animation + border-radius + overflow ignores parent border-radius */
+  will-change: transform;
+}
 
-  /**
-   * Waves container
-   */
-  .Tappable--android .Tappable__waves {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    pointer-events: none;
-    overflow: hidden;
-    }
+.Tappable--android .Tappable__wave {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 24px;
+  height: 24px;
+  margin: -12px 0 0 -12px;
+  opacity: 0;
+  content: '';
+  border-radius: 50%;
+  background: rgba(127, 127, 127, .1);
+  animation: animation-wave .3s var(--android-easing);
+}
 
-    /**
-     * Wave
-     */
-    .Tappable--android .Tappable__wave {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 24px;
-      height: 24px;
-      margin: -12px 0 0 -12px;
-      opacity: 0;
-      content: '';
-      border-radius: 50%;
-      background: rgba(127, 127, 127, .1);
-      animation: animation-wave .3s var(--android-easing);
-      }
+/**
+ * VKCOM tappable
+ */
+.Tappable--vkcom {
+  transition: background-color .15s ease-out;
+  border-radius: 8px;
+}
+
+/**
+ * overrides
+ */
+
+.Tappable--sizeX-compact {
+  border-radius: 0;
+}
 
 /**
  * Animations

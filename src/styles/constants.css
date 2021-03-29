@@ -1,9 +1,7 @@
 :root {
   /* fonts */
-  --font-ios: -apple-system, Helvetica Neue, Arial;
-  --font-android: Roboto, Arial;
-  --font-common: -apple-system, Roboto, Helvetica Neue, Arial;
-  --font-tt: "TT Commons", -apple-system, Roboto, Helvetica Neue, Arial;
+  --font-common: -apple-system, system-ui, Helvetica Neue, Roboto, sans-serif;
+  --font-tt: "TT Commons", -apple-system, system-ui, Helvetica Neue, Roboto, sans-serif;
 
   /* easings */
   --ios-easing: cubic-bezier(.36, .66, .04, 1);
@@ -13,18 +11,33 @@
   --tabbar_height: 48px;
   --panelheader_height_ios: 52px;
   --panelheader_height_android: 56px;
+  --panelheader_height_vkcom: 48px;
   --modalheader_height_ios: 52px;
   --modalheader_height_android: 56px;
   --search_default_height: 36px;
+  --thin-border: 1px;
 
   /* colors */
   --white: #fff;
+  --blue_200: #5c9ce6;
 
   /* iOS insets */
   --safe-area-inset-top: 20px;
   --safe-area-inset-right: 0px;
   --safe-area-inset-bottom: 0px;
   --safe-area-inset-left: 0px;
+}
+
+@media (min-resolution: 2dppx) {
+  :root {
+    --thin-border: .5px;
+  }
+}
+
+@media (min-resolution: 3dppx) {
+  :root {
+    --thin-border: .33px;
+  }
 }
 
 @supports (padding-top: constant(safe-area-inset-top)) {

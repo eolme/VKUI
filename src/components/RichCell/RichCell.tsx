@@ -1,13 +1,30 @@
-import React, { FunctionComponent, HTMLAttributes, ReactNode } from 'react';
-import classNames from '../../lib/classNames';
-import usePlatform from '../../hooks/usePlatform';
-import getClassName from '../../helpers/getClassName';
-import { HasRootRef } from '../../types';
-import Tappable from '../Tappable/Tappable';
+import { FunctionComponent, ReactNode } from 'react';
+import { classNames } from '../../lib/classNames';
+import { usePlatform } from '../../hooks/usePlatform';
+import { getClassName } from '../../helpers/getClassName';
+import Tappable, { TappableProps } from '../Tappable/Tappable';
+import { hasReactNode } from '../../lib/utils';
+import Text from '../Typography/Text/Text';
+import Caption from '../Typography/Caption/Caption';
+import { withAdaptivity } from '../../hoc/withAdaptivity';
 
-export interface RichCellProps extends HTMLAttributes<HTMLElement>, HasRootRef<HTMLElement> {
+export interface RichCellProps extends TappableProps {
+  /**
+   * Контейнер для текста под `children`.
+   */
   text?: ReactNode;
+  /**
+   * Контейнер для текста под `text`.
+   */
   caption?: ReactNode;
+  /**
+   * Контейнер для контента под `caption`. Например `<UsersStack size="s" />`
+   */
+  bottom?: ReactNode;
+  /**
+   * Кнопка или набор кнопок `<Button size="s" />`. Располагается под `bottom`.
+   */
+  actions?: ReactNode;
   /**
    * `<Avatar size={48|72} />`
    */
@@ -17,17 +34,10 @@ export interface RichCellProps extends HTMLAttributes<HTMLElement>, HasRootRef<H
    */
   after?: ReactNode;
   /**
-   * Например `<UsersStack size="s" />`
+   * Убирает анимацию нажатия
    */
-  bottom?: ReactNode;
-  /**
-   * Кнопка или набор кнопок `<Button size="m" />`
-   */
-  actions?: ReactNode;
   disabled?: boolean;
   multiline?: boolean;
-  href?: string;
-  target?: string;
 }
 
 const RichCell: FunctionComponent<RichCellProps> = ({
@@ -39,47 +49,60 @@ const RichCell: FunctionComponent<RichCellProps> = ({
   bottom,
   actions,
   multiline,
-  className,
+  Component,
+  onClick,
+  sizeY,
   ...restProps
 }) => {
   const platform = usePlatform();
-  const isAfterPrimitive = typeof after === 'string' || typeof after === 'number';
+  const RootComponent = restProps.disabled ? Component : Tappable;
+  Component = restProps.disabled ? undefined : Component;
+
+  const props: RichCellProps = restProps;
+
+  if (!restProps.disabled) {
+    props.Component = restProps.href ? 'a' : Component;
+    props.onClick = onClick;
+  }
 
   return (
-    <Tappable
-      {...restProps}
-      Component={restProps.href ? 'a' : 'div'}
-      className={
+    <RootComponent
+      {...props}
+      vkuiClass={
         classNames(
-          className,
           getClassName('RichCell', platform),
           {
             'RichCell--mult': multiline,
           },
+          `RichCell--sizeY-${sizeY}`,
         )
       }
     >
       {before}
-      <div className="RichCell__in">
-        <div className="RichCell__top">
+      <div vkuiClass="RichCell__in">
+        <div vkuiClass="RichCell__top">
           {/* Этот after будет скрыт из верстки. Он нужен для CSS */}
-          {isAfterPrimitive ? <span>{after}</span> : after}
-          <div className="RichCell__content">
-            <div className="RichCell__children">{children}</div>
-            {after && <div className="RichCell__after">{after}</div>}
-          </div>
-          {text && <div className="RichCell__text">{text}</div>}
-          {caption && <div className="RichCell__caption">{caption}</div>}
-          {(bottom || actions) &&
-            <div className="RichCell__bottom">
+          {after}
+          <Text weight="medium" vkuiClass="RichCell__content">
+            <div vkuiClass="RichCell__children">{children}</div>
+            {hasReactNode(after) && <div vkuiClass="RichCell__after">{after}</div>}
+          </Text>
+          {hasReactNode(text) && <Text weight="regular" vkuiClass="RichCell__text">{text}</Text>}
+          {hasReactNode(caption) && <Caption level="1" weight="regular" vkuiClass="RichCell__caption">{caption}</Caption>}
+          {(hasReactNode(bottom) || hasReactNode(actions)) &&
+            <div vkuiClass="RichCell__bottom">
               {bottom}
-              {actions && <div className="RichCell__actions">{actions}</div>}
+              {hasReactNode(actions) && <div vkuiClass="RichCell__actions">{actions}</div>}
             </div>
           }
         </div>
       </div>
-    </Tappable>
+    </RootComponent>
   );
 };
 
-export default RichCell;
+RichCell.defaultProps = {
+  Component: 'div',
+};
+
+export default withAdaptivity(RichCell, { sizeY: true });

@@ -1,80 +1,61 @@
-import React, { Component, HTMLAttributes } from 'react';
-import PropTypes, { Requireable } from 'prop-types';
-import getClassName from '../../helpers/getClassName';
-import classNames from '../../lib/classNames';
+import { Component, HTMLAttributes, RefCallback } from 'react';
+import { getClassName } from '../../helpers/getClassName';
+import { classNames } from '../../lib/classNames';
 import Touch from '../Touch/Touch';
-import { tabbarHeight } from '../../appearance/constants';
-import withInsets from '../../hoc/withInsets';
-import withPlatform from '../../hoc/withPlatform';
-import { isNumeric } from '../../lib/utils';
-import { HasInsets, HasPlatform, HasRootRef, OldRef } from '../../types';
+import { TooltipContainer } from '../Tooltip/TooltipContainer';
+import { withPlatform } from '../../hoc/withPlatform';
+import { HasPlatform, HasRootRef } from '../../types';
+import { withAdaptivity, AdaptivityProps } from '../../hoc/withAdaptivity';
 import { PanelContext, PanelContextProps } from './PanelContext';
+import { IOS } from '../../lib/platform';
+import { setRef } from '../../lib/utils';
 
-export interface PanelProps extends HTMLAttributes<HTMLDivElement>, HasPlatform, HasInsets, HasRootRef<HTMLDivElement> {
+export interface PanelProps extends HTMLAttributes<HTMLDivElement>, HasPlatform, HasRootRef<HTMLDivElement>, AdaptivityProps {
   id: string;
-  separator?: boolean;
   centered?: boolean;
 }
 
-export interface PanelContext {
-  hasTabbar: Requireable<boolean>;
-}
-
 class Panel extends Component<PanelProps> {
-  static defaultProps: Partial<PanelProps> = {
-    children: '',
-    centered: false,
-    /**
-     * @deprecated будет удалено в 4-й версии. Сепаратор теперь устанавливается в PanelHeader
-     */
-    separator: true,
-  };
-
-  static contextTypes: PanelContext = {
-    hasTabbar: PropTypes.bool,
-  };
-
-  getContext(): PanelContextProps {
-    return {
-      panel: this.props.id,
-      separator: this.props.separator,
+  constructor(props: PanelProps) {
+    super(props);
+    this.childContext = {
+      panel: props.id,
+      getPanelNode: () => this.container,
     };
   }
 
+  private readonly childContext: PanelContextProps;
+
+  static defaultProps: Partial<PanelProps> = {
+    children: '',
+    centered: false,
+  };
+
   container: HTMLDivElement;
 
-  getRef: OldRef<HTMLDivElement> = (container: HTMLDivElement) => {
+  getRef: RefCallback<HTMLDivElement> = (container) => {
     this.container = container;
-
-    const getRootRef = this.props.getRootRef;
-    if (getRootRef) {
-      if (typeof getRootRef === 'function') {
-        getRootRef(container);
-      } else {
-        getRootRef.current = container;
-      }
-    }
+    setRef(container, this.props.getRootRef);
   };
 
   render() {
-    const { className, centered, children, insets, platform, separator, getRootRef, ...restProps } = this.props;
-    const tabbarPadding = this.context.hasTabbar ? tabbarHeight : 0;
+    const { centered, children, platform, getRootRef, sizeX, ...restProps } = this.props;
 
     return (
-      <PanelContext.Provider value={this.getContext()}>
+      <PanelContext.Provider value={this.childContext}>
         <div
           {...restProps}
           ref={this.getRef}
-          className={classNames(getClassName('Panel', platform), className, {
+          vkuiClass={classNames(getClassName('Panel', platform), `Panel--${sizeX}`, {
             'Panel--centered': centered,
+            [`Panel--sizeX-${sizeX}`]: true,
           })}
         >
-          <Touch className="Panel__in" style={{
-            paddingBottom: isNumeric(insets.bottom) ? insets.bottom + tabbarPadding : null,
-          }}>
-            <div className="Panel__in-before" />
-            {centered ? <div className="Panel__centered">{children}</div> : children}
-            <div className="Panel__in-after" />
+          <Touch Component={TooltipContainer} vkuiClass="Panel__in">
+            {platform === IOS && <div vkuiClass="Panel__fade" />}
+            <div vkuiClass="Panel__in-before" />
+            {centered ? <div vkuiClass="Panel__centered">{children}</div> : children}
+            <div vkuiClass="Panel__in-after" />
           </Touch>
         </div>
       </PanelContext.Provider>
@@ -82,4 +63,6 @@ class Panel extends Component<PanelProps> {
   }
 }
 
-export default withPlatform(withInsets(Panel));
+export default withAdaptivity(withPlatform(Panel), {
+  sizeX: true,
+});

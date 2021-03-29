@@ -1,29 +1,55 @@
-import React, { FunctionComponent, HTMLAttributes } from 'react';
-import getClassName from '../../helpers/getClassName';
-import classNames from '../../lib/classNames';
-import usePlatform from '../../hooks/usePlatform';
-import { HasFormLabels, HasFormStatus } from '../../types';
+import { FunctionComponent, HTMLAttributes, MouseEvent } from 'react';
+import { getClassName } from '../../helpers/getClassName';
+import { classNames } from '../../lib/classNames';
+import { usePlatform } from '../../hooks/usePlatform';
+import { Removable, RemovePlaceholderProps } from '../Removable/Removable';
+import { withAdaptivity, AdaptivityProps } from '../../hoc/withAdaptivity';
 
-export interface FormLayoutGroupProps extends
-  HTMLAttributes<HTMLDivElement>,
-  HasFormStatus,
-  HasFormLabels {}
+export interface FormLayoutGroupProps extends HTMLAttributes<HTMLDivElement>, RemovePlaceholderProps {
+  mode?: 'vertical' | 'horizontal';
+  /**
+   * Только для режима horizontal. Дает возможность удалить всю группу `FormItem`.
+   */
+  removable?: boolean;
+  /**
+   * Коллбэк срабатывает при клике на контрол удаления.
+   */
+  onRemove?: (e: MouseEvent) => void;
+}
 
-const FormLayoutGroup: FunctionComponent<FormLayoutGroupProps> = ({
+const FormLayoutGroup: FunctionComponent<FormLayoutGroupProps> = withAdaptivity(({
   children,
-  top,
-  bottom,
-  className,
-  status,
+  mode,
+  removable,
+  removePlaceholder,
+  onRemove,
+  sizeY,
   ...restProps
-}: FormLayoutGroupProps) => {
+}: FormLayoutGroupProps & Pick<AdaptivityProps, 'sizeY'>) => {
   const platform = usePlatform();
+  const isRemovable = removable && mode === 'horizontal';
 
   return (
-    <div className={classNames(getClassName('FormLayoutGroup', platform), className)} {...restProps}>
-      {children}
+    <div
+      vkuiClass={classNames(
+        getClassName('FormLayoutGroup', platform),
+        `FormLayoutGroup--sizeY-${sizeY}`,
+        `FormLayoutGroup--${mode}`,
+      )}
+      {...restProps}>
+      {isRemovable
+        ? <Removable align="start" removePlaceholder={removePlaceholder} onRemove={onRemove}>{children}</Removable>
+        : children
+      }
     </div>
   );
+}, {
+  sizeY: true,
+});
+
+FormLayoutGroup.defaultProps = {
+  mode: 'vertical',
+  removePlaceholder: 'Удалить',
 };
 
 export default FormLayoutGroup;

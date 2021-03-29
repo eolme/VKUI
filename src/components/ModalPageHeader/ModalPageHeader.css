@@ -1,5 +1,3 @@
-.ModalPageHeader {}
-
 .ModalPageHeader__in,
 .ModalPageHeader__left,
 .ModalPageHeader__right {
@@ -22,79 +20,36 @@
 
 .ModalPage--ios .ModalPageHeader__in {
   height: var(--modalheader_height_ios);
-  padding: 0 2px;
+  padding: 0 4px;
+}
+
+.ModalPageHeader__separator {
+  margin-top: -1px;
 }
 
 .ModalPageHeader__left,
 .ModalPageHeader__right {
+  flex: 0 0;
+  display: flex;
+  align-items: center;
   color: var(--header_tint_alternate);
 }
 
-.ModalPageHeader__left {
-  flex-shrink: 0;
+.ModalPageHeader__content {
   display: flex;
   align-items: center;
-}
-
-.ModalPageHeader__content {
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .ModalPageHeader__content-in {
   overflow: hidden;
   text-overflow: ellipsis;
-  font-weight: 500;
+  font-weight: 800;
 }
 
 .ModalPageHeader__right {
-  display: flex;
   justify-content: flex-end;
-  align-items: center;
-  flex-shrink: 0;
   text-align: right;
-}
-
-.ModalPageHeader__shadow {
-  pointer-events: none;
-  opacity: 0;
-  position: absolute;
-  top: 0;
-  height: 100%;
-  width: 100%;
-  z-index: 1;
-  transition: opacity 120ms ease-out;
-}
-
-.ModalRoot--touched .ModalPageHeader__shadow {
-  transition: none;
-}
-
-.ModalPageHeader--android .ModalPageHeader__shadow {
-  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, .06), 0 0 2px 0 rgba(0, 0, 0, .03);
-}
-
-.ModalPageHeader__shadow::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background: var(--separator_common);
-  transform-origin: center bottom;
-}
-
-@media (min-resolution: 2dppx) {
-  .ModalPageHeader__shadow::after {
-    transform: scaleY(.5);
-  }
-}
-
-@media (min-resolution: 3dppx) {
-  .ModalPageHeader__shadow::after {
-    transform: scaleY(.33);
-  }
 }
 
 .ModalPageHeader .PanelHeaderButton .Icon--dismiss_24 {
@@ -121,22 +76,22 @@
 
 .ModalPageHeader--ios .ModalPageHeader__left .PanelHeaderButton .Icon--24 {
   padding-left: 12px;
-}
-
-.ModalPageHeader--ios .ModalPageHeader__left .PanelHeaderButton--primitive {
-  padding-left: 16px;
+  padding-right: 12px;
 }
 
 .ModalPageHeader--ios .ModalPageHeader__content {
   position: relative;
   z-index: 1;
+  font-family: var(--font-tt);
+  flex: 2 1;
+  font-size: 21px;
+  justify-content: center;
 }
 
-.ModalPageHeader--ios .ModalPageHeader__content-in {
-  font-weight: 800;
-  font-family: var(--font-tt);
-  font-size: 21px;
-  text-align: center;
+@media (min-width: 320px) {
+  .ModalPageHeader--ios .ModalPageHeader__content {
+    flex-grow: 3;
+  }
 }
 
 .ModalPageHeader--ios .ModalPageHeader__right {
@@ -151,17 +106,27 @@
 }
 
 .ModalPageHeader--ios .ModalPageHeader__right .PanelHeaderButton .Icon--24 {
+  padding-left: 12px;
   padding-right: 12px;
 }
 
-.ModalPageHeader--ios .ModalPageHeader__right .PanelHeaderButton--primitive {
-  padding-right: 16px;
+.ModalPageHeader--ios.ModalPageHeader--sizeX-regular .ModalPageHeader__in {
+  padding: 0 8px;
+}
+
+.ModalPageHeader--ios.ModalPageHeader--sizeX-regular .ModalPageHeader__left:not(:empty) {
+  padding-left: 0;
+}
+
+.ModalPageHeader--ios.ModalPageHeader--sizeX-regular .ModalPageHeader__right:not(:empty) {
+  padding-right: 0;
 }
 
 /**
  * Android
  */
-.ModalPageHeader--android .ModalPageHeader__left {
+.ModalPageHeader--android .ModalPageHeader__left,
+.ModalPageHeader--vkcom .ModalPageHeader__left {
   padding-right: 6px;
 }
 
@@ -173,7 +138,8 @@
   padding-left: 4px;
 }
 
-.ModalPageHeader--android .ModalPageHeader__dismiss {
+.ModalPageHeader--android .ModalPageHeader__dismiss,
+.ModalPageHeader--vkcom .ModalPageHeader__dismiss {
   color: var(--icon_secondary);
 }
 
@@ -184,16 +150,84 @@
 
 .ModalPageHeader--android .ModalPageHeader__content-in {
   font-size: 20px;
-  font-weight: 800;
   font-family: var(--font-tt);
-  display: flex;
-  align-items: center;
 }
 
-.ModalPageHeader--android .ModalPageHeader__right {
+.ModalPageHeader--android .ModalPageHeader__right,
+.ModalPageHeader--vkcom .ModalPageHeader__right {
   padding-left: 6px;
 }
 
 .ModalPageHeader--android .ModalPageHeader__right:not(:empty) {
   padding-right: 4px;
+}
+
+.ModalPageHeader--android.ModalPageHeader--sizeX-regular .ModalPageHeader__in {
+  padding: 0 8px;
+}
+
+.ModalPageHeader--android .ModalPageHeader__left:empty {
+  padding-right: 14px;
+}
+
+.ModalPageHeader--android.ModalPageHeader--sizeX-regular .ModalPageHeader__left:not(:empty) {
+  padding-left: 0;
+}
+
+.ModalPageHeader--android .ModalPageHeader__right:empty {
+  padding-left: 14px;
+}
+
+.ModalPageHeader--android.ModalPageHeader--sizeX-regular .ModalPageHeader__right:not(:empty) {
+  padding-right: 0;
+}
+
+/**
+ * VKCOM
+ */
+
+.ModalPageHeader--vkcom .ModalPageHeader__in {
+  height: var(--panelheader_height_vkcom);
+  justify-content: space-between;
+  padding: 0 2px;
+}
+
+.ModalPageHeader--vkcom .ModalPageHeader__left,
+.ModalPageHeader--vkcom .ModalPageHeader__right {
+  flex-grow: 1;
+  flex-basis: 0;
+}
+
+.ModalPageHeader--vkcom .ModalPageHeader__left {
+  padding-right: 1px;
+}
+
+.ModalPageHeader--vkcom .ModalPageHeader__right {
+  padding-left: 1px;
+}
+
+.ModalPageHeader--vkcom .ModalPageHeader__left:empty {
+  padding-right: 10px;
+}
+
+.ModalPageHeader--vkcom .ModalPageHeader__right:empty {
+  padding-left: 10px;
+}
+
+.ModalPageHeader--vkcom .ModalPageHeader__content {
+  max-width: 100%;
+}
+
+.ModalPageHeader--vkcom .ModalPageHeader__content-in {
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  line-height: 20px;
+  font-weight: 500;
+}
+
+.ModalPageHeader--vkcom .ModalPageHeader__content-in > span {
+  overflow: hidden;
+  width: 100%;
+  text-overflow: ellipsis;
 }

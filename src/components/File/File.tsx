@@ -1,13 +1,14 @@
-import React, { FunctionComponent, InputHTMLAttributes } from 'react';
-import getClassName from '../../helpers/getClassName';
+import { HTMLAttributes, FunctionComponent, InputHTMLAttributes, useRef } from 'react';
+import { getClassName } from '../../helpers/getClassName';
 import Button, { VKUIButtonProps } from '../Button/Button';
-import classNames from '../../lib/classNames';
 import { HasRef, HasRootRef } from '../../types';
-import usePlatform from '../../hooks/usePlatform';
+import { usePlatform } from '../../hooks/usePlatform';
+import { setRef } from '../../lib/utils';
 
 export interface FileProps extends
-  Omit<VKUIButtonProps, 'size'>,
-  InputHTMLAttributes<HTMLInputElement>,
+  Omit<VKUIButtonProps, 'size' | 'type'>,
+  Omit<InputHTMLAttributes<HTMLInputElement>, 'onClick' | 'type'>,
+  Pick<HTMLAttributes<HTMLElement>, 'onClick'>,
   HasRef<HTMLInputElement>,
   HasRootRef<HTMLElement> {
   controlSize?: VKUIButtonProps['size'];
@@ -15,15 +16,21 @@ export interface FileProps extends
 
 const File: FunctionComponent<FileProps> = (props: FileProps) => {
   const { children, align, controlSize, mode, stretched, before, className,
-    style, getRef, getRootRef, ...restProps } = props;
+    style, getRef, getRootRef, onClick, ...restProps } = props;
 
   const platform = usePlatform();
+  const inputRef = useRef<HTMLInputElement>();
+
+  const getInputRef = (element: HTMLInputElement) => {
+    inputRef.current = element;
+    setRef(element, getRef);
+  };
 
   return (
     <Button
       align={align}
-      className={classNames(getClassName('File', platform), className)}
-      Component="label"
+      vkuiClass={getClassName('File', platform)}
+      className={className}
       stretched={stretched}
       mode={mode}
       size={controlSize}
@@ -31,8 +38,13 @@ const File: FunctionComponent<FileProps> = (props: FileProps) => {
       style={style}
       getRootRef={getRootRef}
       disabled={restProps.disabled}
+      type="button"
+      onClick={(e) => {
+        inputRef.current.click();
+        onClick && onClick(e);
+      }}
     >
-      <input {...restProps} className="File__input" type="file" ref={getRef} />
+      <input {...restProps} vkuiClass="File__input" type="file" ref={getInputRef} />
       {children}
     </Button>
   );

@@ -1,19 +1,47 @@
-import React from 'react';
-import { OSType, platform } from './platform';
-import { HasChildren } from '../types';
+import { createContext, FC } from 'react';
+import { PlatformType, platform } from './platform';
+import { BrowserInfo, computeBrowserInfo } from './browser';
+import { DOMContext, getDOM } from '../lib/dom';
 
 export interface SSRContextInterface {
-  platform: OSType;
-}
-
-export const SSRContext: React.Context<SSRContextInterface> = React.createContext({ platform: null });
-
-export interface SSRWrapperProps extends HasChildren {
+  platform: PlatformType;
   userAgent?: string;
+  browserInfo?: BrowserInfo;
 }
 
-export const SSRWrapper: React.FunctionComponent<SSRWrapperProps> = ({ userAgent, children }: SSRWrapperProps) =>
-  <SSRContext.Provider value={{ platform: platform(userAgent) }}>
-    {children}
-  </SSRContext.Provider>
-;
+export const SSRContext = createContext<SSRContextInterface>({
+  platform: null,
+  userAgent: '',
+  browserInfo: undefined,
+});
+
+export interface SSRWrapperProps {
+  userAgent?: string;
+  browserInfo?: BrowserInfo;
+}
+
+export const SSRWrapper: FC<SSRWrapperProps> = (props) => {
+  let { userAgent, browserInfo, children } = props;
+
+  if (!browserInfo && userAgent) {
+    browserInfo = computeBrowserInfo(userAgent);
+  }
+
+  // TODO: Каждый раз создаётся новый объект для контекста – плохо
+  const contextValue = {
+    platform: platform(browserInfo),
+    browserInfo,
+    userAgent,
+  };
+
+  // TODO: move to state, and update in effect?
+  const dom = getDOM();
+
+  return (
+    <SSRContext.Provider value={contextValue}>
+      <DOMContext.Provider value={dom}>
+        {children}
+      </DOMContext.Provider>
+    </SSRContext.Provider>
+  );
+};

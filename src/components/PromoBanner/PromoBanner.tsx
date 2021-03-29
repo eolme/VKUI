@@ -1,9 +1,11 @@
-import React, { HTMLAttributes, useEffect, useMemo, useState, useCallback } from 'react';
-import Icon24Dismiss from '@vkontakte/icons/dist/24/dismiss';
+import { HTMLAttributes, useEffect, useMemo, useState, useCallback } from 'react';
+import { Icon24Dismiss } from '@vkontakte/icons';
 import Button from '../Button/Button';
-import Cell from '../Cell/Cell';
+import SimpleCell from '../SimpleCell/SimpleCell';
 import Avatar from '../Avatar/Avatar';
-import classNames from '../../lib/classNames';
+import Caption from '../Typography/Caption/Caption';
+import { usePlatform } from '../../hooks/usePlatform';
+import { getClassName } from '../../helpers/getClassName';
 
 type StatsType =
   | 'playbackStarted' // Начало показа
@@ -29,6 +31,8 @@ type BannerData = {
   directLink?: boolean;
   navigationType?: string;
   description?: string;
+  ageRestrictions?: string;
+  /** @deprecated */
   ageRestriction?: number;
 };
 
@@ -42,13 +46,23 @@ export interface PromoBannerProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const PromoBanner = (props: PromoBannerProps) => {
+  const platform = usePlatform();
+  const { bannerData = {}, onClose, ...restProps } = props;
+
+  const ageRestrictions =
+    bannerData.ageRestrictions != null
+      ? parseInt(bannerData.ageRestrictions)
+      : bannerData.ageRestriction;
+
   const [currentPixel, setCurrentPixel] = useState('');
 
-  const statsPixels = useMemo(() => (
-    props.bannerData.statistics
-      ? props.bannerData.statistics.reduce((acc, item) => ({ ...acc, [item.type]: item.url }), {})
-      : {}
-  ) as Record<StatsType, string | void>, [props.bannerData.statistics]);
+  const statsPixels = useMemo(
+    () =>
+      (bannerData.statistics
+        ? bannerData.statistics.reduce((acc, item) => ({ ...acc, [item.type]: item.url }), {})
+        : {}) as Record<StatsType, string | void>,
+    [bannerData.statistics],
+  );
 
   const onClick = useCallback(() => setCurrentPixel(statsPixels.click || ''), [statsPixels.click]);
 
@@ -59,39 +73,33 @@ const PromoBanner = (props: PromoBannerProps) => {
   }, [statsPixels.playbackStarted]);
 
   return (
-    <div className={classNames('PromoBanner', props.className)}>
-      <div className="PromoBanner__head">
-        {props.bannerData.ageRestriction && <span className="PromoBanner__age">{props.bannerData.ageRestriction}+</span>}
-        <span className="PromoBanner__label">{props.bannerData.advertisingLabel || 'Advertisement'}</span>
+    <div vkuiClass={getClassName('PromoBanner', platform)} {...restProps}>
+      <div vkuiClass="PromoBanner__head">
+        <Caption weight="regular" level="1" vkuiClass="PromoBanner__label">{bannerData.advertisingLabel || 'Advertisement'}</Caption>
+        {ageRestrictions != null && <Caption weight="regular" level="1" vkuiClass="PromoBanner__age">{ageRestrictions}+</Caption>}
 
         {!props.isCloseButtonHidden &&
-        <div className="PromoBanner__close" onClick={props.onClose}>
-          <Icon24Dismiss />
-        </div>
+          <div vkuiClass="PromoBanner__close" onClick={props.onClose}>
+            <Icon24Dismiss />
+          </div>
         }
       </div>
-      <a
-        href={props.bannerData.trackingLink}
+      <SimpleCell
+        href={bannerData.trackingLink}
         onClick={onClick}
         rel="nofollow noopener noreferrer"
         target="_blank"
-        className="PromoBanner__clickable-body"
+        before={
+          <Avatar mode="image" size={48} src={bannerData.iconLink} alt={bannerData.title} />
+        }
+        after={<Button mode="outline">{bannerData.ctaText}</Button>}
+        description={bannerData.domain}
       >
-        <div className="PromoBanner__content">
-          <Cell
-            before={
-              <Avatar mode="image" size={48} src={props.bannerData.iconLink} alt={props.bannerData.title} />
-            }
-            asideContent={<Button mode="outline">{props.bannerData.ctaText}</Button>}
-            description={props.bannerData.domain}
-          >
-            {props.bannerData.title}
-          </Cell>
-        </div>
-      </a>
+        {bannerData.title}
+      </SimpleCell>
 
       {currentPixel.length > 0 &&
-        <div className="PromoBanner__pixels">
+        <div vkuiClass="PromoBanner__pixels">
           <img src={currentPixel} alt="" />
         </div>
       }

@@ -1,20 +1,24 @@
-import React, { FunctionComponent, ImgHTMLAttributes } from 'react';
-import getClassName from '../../helpers/getClassName';
-import classNames from '../../lib/classNames';
-import usePlatform from '../../hooks/usePlatform';
+import { FunctionComponent, ImgHTMLAttributes } from 'react';
+import { getClassName } from '../../helpers/getClassName';
+import { classNames } from '../../lib/classNames';
+import { usePlatform } from '../../hooks/usePlatform';
 import { HasRootRef } from '../../types';
 
 export interface AvatarProps extends ImgHTMLAttributes<HTMLElement>, HasRootRef<HTMLDivElement> {
-  size?: 80 | 72 | 64 | 56 | 48 | 44 | 40 | 36 | 32 | 28 | 24;
+  /**
+   * Рекомендуемый сет значений: 96 | 88 | 80 | 72 | 64 | 56 | 48 | 44 | 40 | 36 | 32 | 28 | 24
+   */
+  size?: number;
   src?: string;
   mode?: 'default' | 'image' | 'app';
+  shadow?: boolean;
 }
 
 const Avatar: FunctionComponent<AvatarProps> = ({
   src,
   size,
+  shadow,
   mode,
-  style,
   className,
   children,
   getRootRef,
@@ -29,27 +33,33 @@ const Avatar: FunctionComponent<AvatarProps> = ({
       borderRadius = '50%';
       break;
     case 'image':
-      borderRadius = 4;
+      size < 64 && (borderRadius = 4);
+      size >= 64 && size < 96 && (borderRadius = 6);
+      size >= 96 && (borderRadius = 8);
       break;
     case 'app':
-      borderRadius = Math.floor(size * 10 / 48);
+      size <= 40 && (borderRadius = 8);
+      size > 40 && size < 56 && (borderRadius = 10);
+      size >= 56 && size < 64 && (borderRadius = 12);
+      size >= 64 && size < 84 && (borderRadius = 16);
+      size >= 84 && (borderRadius = 18);
       break;
   }
 
   return (
     <div
-      className={classNames(getClassName('Avatar', platform), className, `Avatar--type-${mode}`, `Avatar--sz-${size}`)}
+      vkuiClass={classNames(getClassName('Avatar', platform), `Avatar--type-${mode}`, `Avatar--sz-${size}`)}
+      className={className}
       ref={getRootRef}
     >
-      <div className="Avatar__in">
+      <div vkuiClass="Avatar__in" style={{ width: size, height: size, borderRadius }}>
         <Component
           {...restProps}
-          className="Avatar__img"
+          vkuiClass="Avatar__img"
           src={src}
-          style={{ ...style, width: size, height: size, borderRadius }}
         />
-        <span className="Avatar__shadow" style={{ borderRadius }} />
-        {children && <div className="Avatar__children" style={{ width: size, height: size, borderRadius }}>{children}</div>}
+        {shadow && <span vkuiClass="Avatar__shadow" />}
+        {children && <div vkuiClass="Avatar__children">{children}</div>}
       </div>
     </div>
   );
@@ -58,6 +68,7 @@ const Avatar: FunctionComponent<AvatarProps> = ({
 Avatar.defaultProps = {
   size: 48,
   mode: 'default',
+  shadow: true,
 };
 
 export default Avatar;

@@ -1,9 +1,7 @@
 import React, { FunctionComponent, HTMLAttributes } from 'react';
-import getClassName from '../../helpers/getClassName';
-import classNames from '../../lib/classNames';
-import { isNumeric } from '../../lib/utils';
-import usePlatform from '../../hooks/usePlatform';
-import useInsets from '../../hooks/useInsets';
+import { getClassName } from '../../helpers/getClassName';
+import { classNames } from '../../lib/classNames';
+import { usePlatform } from '../../hooks/usePlatform';
 
 export interface TabbarProps extends HTMLAttributes<HTMLDivElement> {
   /**
@@ -14,9 +12,8 @@ export interface TabbarProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const Tabbar: FunctionComponent<TabbarProps> = (props: TabbarProps) => {
-  const { className, children, shadow, itemsLayout } = props;
+  const { children, shadow, itemsLayout, ...restProps } = props;
   const platform = usePlatform();
-  const insets = useInsets();
 
   const getItemsLayout = () => {
     switch (itemsLayout) {
@@ -30,10 +27,10 @@ const Tabbar: FunctionComponent<TabbarProps> = (props: TabbarProps) => {
 
   return (
     <div
-      className={classNames(getClassName('Tabbar', platform), className, `Tabbar--l-${getItemsLayout()}`, {
+      vkuiClass={classNames(getClassName('Tabbar', platform), `Tabbar--l-${getItemsLayout()}`, {
         'Tabbar--shadow': shadow,
       })}
-      style={{ paddingBottom: isNumeric(insets.bottom) ? insets.bottom : null }}
+      {...restProps}
     >
       {children}
     </div>

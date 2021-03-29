@@ -1,54 +1,40 @@
-import React, { ButtonHTMLAttributes, ElementType } from 'react';
-import Tappable from '../Tappable/Tappable';
-import getClassName from '../../helpers/getClassName';
-import classNames from '../../lib/classNames';
-import usePlatform from '../../hooks/usePlatform';
-import { HasAlign } from '../../types';
+import React from 'react';
+import { getClassName } from '../../helpers/getClassName';
+import { classNames } from '../../lib/classNames';
+import { usePlatform } from '../../hooks/usePlatform';
+import SimpleCell, { SimpleCellProps } from '../SimpleCell/SimpleCell';
 
-export interface CellButtonProps extends ButtonHTMLAttributes<HTMLElement>, HasAlign {
+export interface CellButtonProps extends SimpleCellProps {
   mode?: 'primary' | 'danger';
-  before?: React.ReactNode;
-  Component?: ElementType;
   stopPropagation?: boolean;
-  href?: string;
-  target?: string;
+  centered?: boolean;
 }
 
 const CellButton: React.FunctionComponent<CellButtonProps> = ({
-  className,
-  align,
+  centered,
   mode,
-  before,
-  children,
-  stopPropagation,
-  Component,
   ...restProps
 }: CellButtonProps) => {
   const platform = usePlatform();
 
   return (
-    <Tappable
+    <SimpleCell
       {...restProps}
-      className={classNames(
+      vkuiClass={classNames(
         getClassName('CellButton', platform),
-        className,
-        `CellButton--lvl-${mode}`,
-        `CellButton--aln-${align}`,
+        `CellButton--${mode}`,
+        {
+          ['CellButton--centered']: centered,
+        },
       )}
-      Component={restProps.href ? 'a' : Component}
-    >
-      <div className="CellButton__in">
-        {before && <div className="CellButton__before">{before}</div>}
-        {children && <div className="CellButton__content">{children}</div>}
-      </div>
-    </Tappable>
+    />
   );
 };
 
 CellButton.defaultProps = {
   mode: 'primary',
   Component: 'button',
-  align: 'left',
+  centered: false,
   stopPropagation: true,
 };
 

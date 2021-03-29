@@ -4,6 +4,11 @@
   height: 100%;
 }
 
+.PanelHeaderContext--desktop.PanelHeaderContext--opened,
+.PanelHeaderContext--desktop.PanelHeaderContext--closing {
+  height: auto;
+}
+
 .PanelHeaderContext__in {
   position: absolute;
   left: 0;
@@ -29,6 +34,10 @@
   animation: animation-panelheadercontext-fade-out .2s ease;
 }
 
+.PanelHeaderContext .SimpleCell {
+  border-radius: 0;
+}
+
 /*
  iOS
  */
@@ -48,24 +57,48 @@
 /*
  Android
  */
-.PanelHeaderContext--android .PanelHeaderContext__in {
+.PanelHeaderContext--android .PanelHeaderContext__in,
+.PanelHeaderContext--vkcom .PanelHeaderContext__in {
   padding: 8px;
   box-sizing: border-box;
 }
 
-.PanelHeaderContext--android.PanelHeaderContext--opened .PanelHeaderContext__in {
+.PanelHeaderContext--android.PanelHeaderContext--opened .PanelHeaderContext__in,
+.PanelHeaderContext--vkcom.PanelHeaderContext--opened .PanelHeaderContext__in {
   animation: animation-panelheadercontext-translate-in .2s ease;
 }
 
-.PanelHeaderContext--android.PanelHeaderContext--closing .PanelHeaderContext__in {
+.PanelHeaderContext--android.PanelHeaderContext--closing .PanelHeaderContext__in,
+.PanelHeaderContext--vkcom.PanelHeaderContext--closing .PanelHeaderContext__in {
   animation: animation-panelheadercontext-translate-out .2s ease;
 }
 
-.PanelHeaderContext--android .List {
+.PanelHeaderContext--android .List,
+.PanelHeaderContext--vkcom .List,
+.PanelHeaderContext--desktop.PanelHeaderContext--ios .List {
   overflow: hidden;
   border-radius: 12px;
   padding: 8px 0;
   background: var(--header_background);
+}
+
+/*
+ Desktop
+ */
+
+.PanelHeaderContext--desktop .PanelHeaderContext__in {
+  padding: 12px 8px;
+  box-sizing: border-box;
+}
+
+.PanelHeaderContext--desktop .PanelHeaderContext__content {
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--header_background);
+}
+
+.PanelHeaderContext--desktop .PanelHeaderContext__content {
+  box-shadow: 0 0 4px rgba(0, 0, 0, .08), 0 8px 8px rgba(0, 0, 0, .16);
 }
 
 /*

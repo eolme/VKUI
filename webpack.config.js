@@ -16,24 +16,33 @@ const config = {
   module: {
     rules: [
       {
-        test: /\.js?$/,
+        test: /\.[jt]sx?$/,
         exclude: /node_modules/,
         loader: 'babel-loader',
-      },
-      {
-        test: /\.(ts|tsx)?$/,
-        exclude: /node_modules/,
-        loader: ['babel-loader', 'ts-loader'],
       },
       {
         test: /\.(jpeg|jpg|png|woff|svg|otf)$/,
         use: {
           loader: 'file-loader',
           options: {
+            esModule: false,
             outputPath: 'static/',
             name: '[name].[hash:8].[ext]',
           },
         },
+      },
+      {
+        test: /\.css$/,
+        use: [{
+          loader: 'style-loader',
+          options: {
+            // singleton is faster, but does not support sourcemaps
+            injectType: isProduction ? 'singletonStyleTag' : 'styleTag',
+            attributes: {
+              class: 'vkui-style'
+            },
+          },
+        }, 'css-loader', 'postcss-loader']
       },
     ],
   },

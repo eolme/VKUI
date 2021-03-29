@@ -1,34 +1,30 @@
 import React, { FunctionComponent } from 'react';
-import getClassName from '../../helpers/getClassName';
-import classNames from '../../lib/classNames';
-import Spinner24 from '@vkontakte/icons/dist/24/spinner';
-import Spinner32 from '@vkontakte/icons/dist/32/spinner';
-import Spinner44 from '@vkontakte/icons/dist/44/spinner';
-import Spinner16 from '@vkontakte/icons/dist/16/spinner';
-import usePlatform from '../../hooks/usePlatform';
+import { getClassName } from '../../helpers/getClassName';
+import { Icon24Spinner, Icon32Spinner, Icon44Spinner, Icon16Spinner } from '@vkontakte/icons';
+import { usePlatform } from '../../hooks/usePlatform';
 
 export interface SpinnerProps extends React.HTMLAttributes<HTMLDivElement> {
-  size: 'small' | 'regular' | 'large' | 'medium';
+  size?: 'small' | 'regular' | 'large' | 'medium';
 }
 
 const svgSpinner = (size: SpinnerProps['size']): React.ReactElement => {
   switch (size) {
     case 'large':
-      return <Spinner44 className="Spinner__self" />;
+      return <Icon44Spinner vkuiClass="Spinner__self" />;
     case 'medium':
-      return <Spinner32 className="Spinner__self" />;
+      return <Icon32Spinner vkuiClass="Spinner__self" />;
     case 'small':
-      return <Spinner16 className="Spinner__self" />;
+      return <Icon16Spinner vkuiClass="Spinner__self" />;
     default:
-      return <Spinner24 className="Spinner__self" />;
+      return <Icon24Spinner vkuiClass="Spinner__self" />;
   }
 };
 
-const Spinner: FunctionComponent<SpinnerProps> = ({ className, size, ...restProps }: SpinnerProps) => {
+const Spinner: FunctionComponent<SpinnerProps> = ({ size, ...restProps }: SpinnerProps) => {
   const platform = usePlatform();
 
   return (
-    <div {...restProps} className={classNames(getClassName('Spinner', platform), className)}>
+    <div {...restProps} vkuiClass={getClassName('Spinner', platform)}>
       {svgSpinner(size)}
     </div>
   );

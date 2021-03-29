@@ -1,4 +1,4 @@
-import React, {
+import {
   Component,
   ReactNode,
   FocusEvent,
@@ -7,15 +7,18 @@ import React, {
   ChangeEvent,
   ChangeEventHandler,
 } from 'react';
-import classNames from '../../lib/classNames';
-import withPlatform from '../../hoc/withPlatform';
-import getClassname from '../../helpers/getClassName';
-import Icon16SearchOutline from '@vkontakte/icons/dist/16/search_outline';
-import Icon16Clear from '@vkontakte/icons/dist/16/clear';
-import { IOS } from '../../lib/platform';
+import { classNames } from '../../lib/classNames';
+import { withPlatform } from '../../hoc/withPlatform';
+import { getClassName } from '../../helpers/getClassName';
+import { Icon16SearchOutline, Icon16Clear, Icon24Cancel } from '@vkontakte/icons';
+import { IOS, VKCOM } from '../../lib/platform';
 import { HasPlatform, HasRef } from '../../types';
 import Touch, { TouchEventHandler, TouchEvent } from '../Touch/Touch';
 import { VKUITouchEvent } from '../../lib/touch';
+import { setRef } from '../../lib/utils';
+import Text from '../Typography/Text/Text';
+import Title from '../Typography/Title/Title';
+import { Separator } from '../../index';
 
 let searchId = 0;
 
@@ -26,6 +29,7 @@ export interface SearchProps extends InputHTMLAttributes<HTMLInputElement>, HasR
    * iOS only. Текст кнопки "отмена", которая чистит текстовое поле и убирает фокус.
    */
   after?: ReactNode;
+  before?: ReactNode;
   icon?: ReactNode;
   onIconClick?: (e: VKUITouchEvent) => void;
   defaultValue?: string;
@@ -41,6 +45,7 @@ class Search extends Component<SearchProps, SearchState> {
     autoComplete: 'off',
     placeholder: 'Поиск',
     after: 'Отмена',
+    before: <Icon16SearchOutline />,
   };
 
   isControlledOutside: boolean;
@@ -109,19 +114,13 @@ class Search extends Component<SearchProps, SearchState> {
   };
 
   inputRef: InputRef = (element: HTMLInputElement) => {
-    const getRef = this.props.getRef;
     this.inputEl = element;
-    if (getRef) {
-      if (typeof getRef === 'function') {
-        getRef(element);
-      } else {
-        getRef.current = element;
-      }
-    }
+    setRef(element, this.props.getRef);
   };
 
   render() {
     const {
+      before,
       className,
       onFocus,
       onBlur,
@@ -134,55 +133,68 @@ class Search extends Component<SearchProps, SearchState> {
       platform,
       icon,
       onIconClick,
+      style,
       ...inputProps
     } = this.props;
 
     return (
-      <div className={classNames(getClassname('Search', platform), {
-        'Search--focused': this.state.focused,
-        'Search--has-value': !!this.value,
-        'Search--has-after': !!after,
-        'Search--has-icon': !!icon,
-      }, className)}>
-        <div className="Search__in">
-          <div className="Search__width" />
-          <div className="Search__control">
+      <div
+        vkuiClass={classNames(getClassName('Search', platform), {
+          'Search--focused': this.state.focused,
+          'Search--has-value': !!this.value,
+          'Search--has-after': !!after,
+          'Search--has-icon': !!icon,
+        })}
+        className={className}
+        style={style}
+      >
+        <div vkuiClass="Search__in">
+          <div vkuiClass="Search__width" />
+          <label vkuiClass="Search__control">
             <input
               {...inputProps}
               ref={this.inputRef}
               type="text"
-              className="Search__input"
+              vkuiClass="Search__input"
               onFocus={this.onFocus}
               onBlur={this.onBlur}
               onChange={this.onChange}
               value={this.value}
             />
-            {platform === IOS && after && <div className="Search__after-width">{after}</div>}
-            <div className="Search__placeholder">
-              <div className="Search__placeholder-in">
-                <Icon16SearchOutline />
-                <div className="Search__placeholder-text" dangerouslySetInnerHTML={{ __html: placeholder }} />
+            {platform === IOS && after && <div vkuiClass="Search__after-width">{after}</div>}
+            <div vkuiClass="Search__placeholder">
+              <div vkuiClass="Search__placeholder-in">
+                {before}
+                {platform === VKCOM
+                  ? <Text vkuiClass="Search__placeholder-text" weight="regular">{placeholder}</Text>
+                  : <Title vkuiClass="Search__placeholder-text" level="3" weight="regular">{placeholder}</Title>
+                }
               </div>
+              {this.state.focused && platform === IOS && after && <div vkuiClass="Search__after-width">{after}</div>}
             </div>
-          </div>
-          <div className="Search__after" onClick={this.onCancel}>
-            <div className="Search__icons">
+          </label>
+          <div vkuiClass="Search__after" onClick={this.onCancel}>
+            <div vkuiClass="Search__icons">
               {icon &&
-                <Touch onStart={this.onIconClickStart} className="Search__icon">
+                <Touch onStart={this.onIconClickStart} vkuiClass="Search__icon">
                   {icon}
                 </Touch>
               }
               {!!this.value &&
-                <Touch onStart={this.onIconCancelClickStart} className="Search__icon">
-                  <Icon16Clear />
+                <Touch onStart={this.onIconCancelClickStart} vkuiClass="Search__icon">
+                  {platform === VKCOM
+                    ? <Icon24Cancel />
+                    : <Icon16Clear />
+                  }
                 </Touch>
               }
             </div>
             {platform === IOS && after &&
-              <div className="Search__after-in">{after}</div>
+              <div vkuiClass="Search__after-in">{after}</div>
             }
           </div>
         </div>
+        {platform === VKCOM && <Separator vkuiClass="Search__separator" wide />}
       </div>
     );
   }

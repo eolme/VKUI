@@ -1,35 +1,43 @@
 .Textarea {
   position: relative;
-  }
+}
 
-  .Textarea textarea {
-    margin: 0;
-    width: 100%;
-    display: block;
-    box-sizing: border-box;
-    outline: none;
-    resize: none;
-    appearance: none;
-    line-height: 19px;
-    font-size: 16px;
-    color: var(--text_primary);
-    padding: 12px;
-    min-height: 86px;
-    max-height: 198px;
-    border: none;
-    z-index: 2;
-    position: relative;
-    background: transparent;
-    }
+.Textarea__el {
+  margin: 0;
+  width: 100%;
+  display: block;
+  box-sizing: border-box;
+  outline: none;
+  resize: none;
+  appearance: none;
+  line-height: 19px;
+  font-size: 16px;
+  color: var(--text_primary);
+  padding: 11px;
+  min-height: 84px;
+  max-height: 196px;
+  border: none;
+  z-index: 2;
+  position: relative;
+  background: transparent;
+}
 
-  .Textarea textarea::placeholder {
-    color: var(--field_text_placeholder);
-  }
+.Textarea--sizeY-compact .Textarea__el {
+  padding-top: 7px;
+  padding-bottom: 7px;
+  font-size: 15px;
+  line-height: 20px;
+  min-height: 54px;
+}
 
-  .Textarea textarea:disabled {
-    opacity: .4;
-  }
+.Textarea__el::placeholder {
+  color: var(--field_text_placeholder);
+}
 
-  .Textarea textarea:disabled::placeholder {
-    color: var(--text_secondary);
-  }
+.Textarea__el:disabled {
+  opacity: .4;
+}
+
+.Textarea__el:disabled::placeholder {
+  color: var(--text_secondary);
+}

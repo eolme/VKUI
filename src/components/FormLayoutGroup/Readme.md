@@ -1,12 +1,58 @@
-Компонент помогает сгруппировать несколько элементов форм по какому-то признаку. Пример: форма ввода пароля.
+Компонент помогает сгруппировать несколько `FormItem` по какому-то признаку, расположив их по вертикали или
+по горизонтали.
 
-```jsx static
-import { FormLayout, FormLayoutGroup, Input } from '@vkontakte/vkui';
+```jsx
+class Example extends React.Component {
+  constructor(props) {
+    super(props);
 
-<FormLayout>
-  <FormLayoutGroup top="Пароль" bottom="Пароль может содержать только латинские буквы и цифры.">
-    <Input type="password" placeholder="Введите пароль" />
-    <Input type="password" placeholder="Повторите пароль" />
-  </FormLayoutGroup>
-</FormLayout>
+    this.state = {
+      showDates: true
+    }
+  }
+
+  toggleDates(showDates) {
+    this.setState({ showDates })
+  }
+
+  render() {
+    const { showDates } = this.state;
+
+    return (
+      <View activePanel="FormLayoutGroup">
+        <Panel id="FormLayoutGroup">
+          <PanelHeader>FormLayoutGroup</PanelHeader>
+          <Group>
+            <FormLayout>
+              <FormLayoutGroup mode="vertical">
+                <FormItem top="Имя">
+                  <Input />
+                </FormItem>
+                <FormItem top="Фамилия">
+                  <Input />
+                </FormItem>
+              </FormLayoutGroup>
+
+              {!showDates
+                ? <CellButton onClick={() => this.toggleDates(true)}>Указать даты поездки</CellButton>
+                : (
+                  <FormLayoutGroup mode="horizontal" removable onRemove={() => this.toggleDates(false)}>
+                    <FormItem bottom="Дата начала поездки">
+                      <Input />
+                    </FormItem>
+                    <FormItem bottom="Дата конца поездки">
+                      <Input />
+                    </FormItem>
+                  </FormLayoutGroup>
+                )
+              }
+            </FormLayout>
+          </Group>
+        </Panel>
+      </View>
+    )
+  }
+}
+
+<Example />
 ```

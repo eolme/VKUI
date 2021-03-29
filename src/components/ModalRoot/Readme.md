@@ -1,17 +1,58 @@
-`ModalRoot` – контейнер для модальных страниц и карточек. Модальные страницы и карточки поддерживают различные жесты: раскрытие на весь экран, закрытие смахиванием вниз.
+`ModalRoot` – контейнер для модальных страниц и карточек.
+Модальные страницы и карточки поддерживают различные жесты: раскрытие на весь экран, закрытие смахиванием вниз.
 
-В качестве `children` принимает коллекцию `ModalPage` и `ModalCard`. У каждого модального окна должен быть уникальный `id`. Свойство `activeModal` определяет какая страница или карточка активна.
+#### Структура
+
+Этот компонент должен быть передан в качестве свойства `modal` компоненту `Root` или `View`.
+**Важно:** структура модальных страниц и карточек должна определяться единожды на старте приложения. Структура – это *декларация* приложения.
+То есть, один раз определив структуру вида:
+
+```jsx static
+class App extends Component {
+  render() {
+    const modal = (
+      <ModalRoot activeModal={this.state.activeModal}>
+        <ModalPage id="select">
+          ...
+        </ModalPage>
+        <ModalCard id="faq">
+          ...
+        </ModalCard>
+      </ModalRoot>
+    );
+
+    return (
+      <View modal={modal}>
+        ...
+      </View>
+    );
+  }
+}
+```
+
+она не должна меняться в ходе работы приложения. Нельзя добавлять новые `ModalPage` и `ModalCard`, нельзя менять их `id`.
+Можно только менять содержимое модальных страниц или карточек. Например, отрендерить список элементов в модальной странице фильтра.
+
+#### Описание работы
+
+В качестве `children` принимает коллекцию `ModalPage` и `ModalCard`.
+У каждого модального окна должен быть уникальный `id`. Свойство `activeModal` определяет какая страница или карточка активна.
 
 - При смене значения свойства `activeModal` происходит плавный переход от одного модального окна к другому.
 - При установке `activeModal` как `null` текущее модальное окно закрывается.
 
-`ModalRoot` принимает свойство `onClose`, которое будет вызвано с идентификатором текущего активного модального окна или карточки после свайпа или нажатия на крестик. Приложение должно установить в качестве нового значения `activeModal` либо идентификатор предыдущей модалки, либо `null` для скрытия. Каждой конкретной `ModalPage` или `ModalCard` можно передать свой обработчик `onClose`, если нужно переопределить поведение.
+`ModalRoot` принимает свойство `onClose`, которое будет вызвано с идентификатором текущего активного модального окна
+или карточки после свайпа или нажатия на крестик. Приложение должно установить в качестве нового значения `activeModal`
+либо идентификатор предыдущей модалки, либо `null` для скрытия.
+Каждой конкретной `ModalPage` или `ModalCard` можно передать свой обработчик `onClose`, если нужно переопределить поведение.
 
 ```jsx
 const MODAL_PAGE_FILTERS = 'filters';
 const MODAL_PAGE_COUNTRIES = 'countries';
 const MODAL_PAGE_STORY_FEEDBACK = 'story-feedback';
 const MODAL_PAGE_USER_INFO = 'user-info';
+const MODAL_PAGE_FULLSCREEN = 'fullscreen';
+const MODAL_PAGE_DYNAMIC = 'dynamic';
 
 const MODAL_CARD_MONEY_SEND = 'money-send';
 const MODAL_CARD_APP_TO_MENU = 'app-to-menu';
@@ -19,7 +60,36 @@ const MODAL_CARD_ABOUT = 'say-about';
 const MODAL_CARD_NOTIFICATIONS = 'notifications';
 const MODAL_CARD_CHAT_INVITE = 'chat-invite';
 
-class App extends React.Component {
+const DynamicModalPage = ({ updateModalHeight, onClose, ...props }) => {
+  const { viewWidth } = useAdaptivity();
+  const isMobile = viewWidth <= ViewWidth.MOBILE;
+  const platform = usePlatform();
+  const [expanded, setExpanded] = React.useState(false);
+  const toggle = React.useCallback(() => setExpanded(!expanded), [expanded]);
+
+  return (
+    <ModalPage
+      {...props}
+      header={
+        <ModalPageHeader
+          right={isMobile && platform === IOS && <PanelHeaderButton onClick={onClose}><Icon24Dismiss/></PanelHeaderButton>}
+          left={isMobile && platform === ANDROID && <PanelHeaderClose onClick={onClose}/>}
+        >
+          Dynamic modal
+        </ModalPageHeader>
+      }
+    >
+      <Group>
+        <CellButton onClick={toggle}>
+          {expanded ? "collapse" : "expand"}
+        </CellButton>
+        {expanded && <Placeholder icon={<Icon56MoneyTransferOutline />} />}
+      </Group>
+    </ModalPage>
+  );
+};
+
+const App = withPlatform(withAdaptivity(class App extends React.Component {
   constructor(props) {
     super(props);
 
@@ -31,6 +101,8 @@ class App extends React.Component {
     this.users = 'k'.repeat(25).split('').map(() => {
       return getRandomUser();
     });
+    
+    this.randomUser = getRandomUser();
 
     this.modalBack = () => {
       this.setActiveModal(this.state.modalHistory[this.state.modalHistory.length - 2]);
@@ -56,74 +128,132 @@ class App extends React.Component {
   };
 
   render() {
+    const isMobile = this.props.viewWidth <= ViewWidth.MOBILE;
+    const platform = this.props.platform;
+    
     const modal = (
       <ModalRoot
         activeModal={this.state.activeModal}
         onClose={this.modalBack}
       >
         <ModalPage
+          id={MODAL_PAGE_FULLSCREEN}
+          onClose={this.modalBack}
+          settlingHeight={100}
+          header={
+            <ModalPageHeader
+              right={platform === IOS && <PanelHeaderButton onClick={this.modalBack}><Icon24Dismiss/></PanelHeaderButton>}
+              left={isMobile && platform === ANDROID && <PanelHeaderClose onClick={this.modalBack}/>}
+            >
+              @{this.randomUser.screen_name}
+            </ModalPageHeader>
+          }
+        >
+          <Gradient style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+            padding: 32,
+          }}>
+            <Avatar size={96} src={this.randomUser.photo_100}/>
+            <Title style={{marginBottom: 8, marginTop: 20}} level="2"
+                   weight="medium">{this.randomUser.first_name + " " + this.randomUser.last_name}</Title>
+          </Gradient>
+          <Group header={<Header mode="secondary" indicator="25">Друзья</Header>}>
+            {this.users.map((user) => {
+              return (
+                <SimpleCell
+                  before={<Avatar src={user.photo_100}/>}
+                  key={user.id}
+                >{user.name}</SimpleCell>
+              );
+            })}
+          </Group>
+        </ModalPage>
+
+        <DynamicModalPage
+          id={MODAL_PAGE_DYNAMIC}
+          onClose={this.modalBack}
+          dynamicContentHeight
+        />
+      
+        <ModalPage
           id={MODAL_PAGE_FILTERS}
           onClose={this.modalBack}
           header={
             <ModalPageHeader
-              left={IS_PLATFORM_ANDROID && <PanelHeaderButton onClick={this.modalBack}><Icon24Cancel /></PanelHeaderButton>}
-              right={<PanelHeaderButton onClick={this.modalBack}>{IS_PLATFORM_IOS ? 'Готово' : <Icon24Done />}</PanelHeaderButton>}
+              left={isMobile && <PanelHeaderClose onClick={this.modalBack}/>}
+              right={<PanelHeaderSubmit onClick={this.modalBack}/>}
             >
               Фильтры
             </ModalPageHeader>
           }
         >
-          <FormLayout>
-            <FormLayoutGroup>
-              <Button mode="secondary" onClick={() => this.setActiveModal(MODAL_PAGE_COUNTRIES)} size="xl">Выбор страны</Button>
-              <Button mode="secondary" onClick={() => this.setActiveModal(MODAL_PAGE_STORY_FEEDBACK)} size="xl">Просмотры истории</Button>
-              <Button mode="secondary" onClick={() => this.setActiveModal(MODAL_PAGE_USER_INFO)} size="xl">Информация о пользователе</Button>
-            </FormLayoutGroup>
+          <Group>
+            <CellButton onClick={() => this.setActiveModal(MODAL_PAGE_COUNTRIES)}>Выбор страны</CellButton>
+            <CellButton onClick={() => this.setActiveModal(MODAL_PAGE_STORY_FEEDBACK)}>Просмотры истории</CellButton>
+            <CellButton onClick={() => this.setActiveModal(MODAL_PAGE_USER_INFO)}>Информация о пользователе</CellButton>
 
-            <SelectMimicry top="Страна" placeholder="Выбрать страну" onClick={() => this.setActiveModal(MODAL_PAGE_COUNTRIES)} />
-            <SelectMimicry top="Город" placeholder="Выбрать город" disabled />
+            <FormItem top="Страна">            
+              <SelectMimicry placeholder="Выбрать страну" onClick={() => this.setActiveModal(MODAL_PAGE_COUNTRIES)} />
+            </FormItem>
+            <FormItem top="Город">            
+              <SelectMimicry placeholder="Выбрать город" disabled />
+            </FormItem>
 
-            <FormLayoutGroup top="Пол">
+            <FormItem top="Пол">
               <Radio name="sex" value={0} defaultChecked>Любой</Radio>
               <Radio name="sex" value={1}>Мужской</Radio>
               <Radio name="sex" value={2}>Женский</Radio>
-            </FormLayoutGroup>
+            </FormItem>
 
-            <SelectMimicry top="Школа" placeholder="Выбрать школу" disabled />
-            <SelectMimicry top="Университет" placeholder="Выбрать университет" disabled />
+            <FormItem top="Школа">            
+              <SelectMimicry placeholder="Выбрать школу" disabled />
+            </FormItem>
+            <FormItem top="Университет">            
+              <SelectMimicry placeholder="Выбрать университет" disabled />
+            </FormItem>
 
-            <FormLayoutGroup top="Дополнительно">
+            <FormItem top="Дополнительно">
               <Checkbox>С фотографией</Checkbox>
               <Checkbox>Сейчас на сайте</Checkbox>
-            </FormLayoutGroup>
+            </FormItem>
 
-            <FormLayoutGroup top="Работа">
+            <FormItem top="Работа">
               <Input placeholder="Место работы" />
+            </FormItem>
+            <FormItem>
               <Input placeholder="Должность" />
-            </FormLayoutGroup>
+            </FormItem>
 
-            <FormLayoutGroup top="Дата рождения">
-              <SelectMimicry placeholder="День рождения" disabled />
-              <SelectMimicry placeholder="Месяц рождения" disabled />
-              <SelectMimicry placeholder="Год рождения" disabled />
-            </FormLayoutGroup>
-          </FormLayout>
+            <FormItem top="Дата рождения">
+              <DatePicker 
+                min={{day: 1, month: 1, year: 1901}} 
+                max={{day: 1, month: 1, year: 2006}}
+                dayPlaceholder="Д"
+                monthPlaceholder="ММ"
+                yearPlaceholder="ГГ" 
+              />
+            </FormItem>
+          </Group>
         </ModalPage>
 
         <ModalPage
           id={MODAL_PAGE_COUNTRIES}
+          onClose={this.modalBack}
           header={
             <ModalPageHeader
-              left={IS_PLATFORM_ANDROID && <PanelHeaderButton onClick={this.modalBack}><Icon24Cancel /></PanelHeaderButton>}
-              right={IS_PLATFORM_IOS && <PanelHeaderButton onClick={this.modalBack}><Icon24Dismiss /></PanelHeaderButton>}
+              left={<PanelHeaderBack label="Назад" onClick={this.modalBack} />}
             >
               Выберите страну
             </ModalPageHeader>
           }
           settlingHeight={80}
         >
-          <FormLayout>
-            <Button mode="secondary" onClick={() => this.setActiveModal(MODAL_PAGE_USER_INFO)} size="xl">Информация о пользователе</Button>
+          <Group>
+            <CellButton onClick={() => this.setActiveModal(MODAL_PAGE_USER_INFO)}>Информация о пользователе</CellButton>
 
             <FormLayoutGroup>
               {importantCountries.map(({ id, title }) => {
@@ -132,45 +262,45 @@ class App extends React.Component {
                 );
               })}
             </FormLayoutGroup>
-          </FormLayout>
+          </Group>
         </ModalPage>
 
         <ModalPage
           id={MODAL_PAGE_STORY_FEEDBACK}
+          onClose={this.modalBack}
           header={
             <ModalPageHeader
-              left={IS_PLATFORM_ANDROID && <PanelHeaderButton onClick={this.modalBack}><Icon24Cancel /></PanelHeaderButton>}
-              right={IS_PLATFORM_IOS && <PanelHeaderButton onClick={this.modalBack}><Icon24Dismiss /></PanelHeaderButton>}
+              left={<PanelHeaderBack label="Назад" onClick={this.modalBack} />}
             >
               Просмотры истории
             </ModalPageHeader>
           }
           settlingHeight={80}
         >
-          <List>
+          <Group>
             {this.users.map((user) => {
               return (
-                <Cell
+                <SimpleCell
                   before={<Avatar src={user.photo_100} />}
                   key={user.id}
-                >{user.name}</Cell>
+                >{user.name}</SimpleCell>
               );
             })}
-          </List>
+          </Group>
         </ModalPage>
 
         <ModalPage
           id={MODAL_PAGE_USER_INFO}
+          onClose={this.modalBack}
           header={
             <ModalPageHeader
-              left={IS_PLATFORM_ANDROID && <PanelHeaderButton onClick={this.modalBack}><Icon24Cancel /></PanelHeaderButton>}
-              right={IS_PLATFORM_IOS && <PanelHeaderButton onClick={this.modalBack}><Icon24Dismiss /></PanelHeaderButton>}
+              left={<PanelHeaderBack label="Назад" onClick={this.modalBack} />}
             >
               Информация о пользователе
             </ModalPageHeader>
           }
         >
-          <List>
+          <Group>
             <Cell>
               <InfoRow header="Дата рождения">
                 30 января 1993
@@ -186,7 +316,7 @@ class App extends React.Component {
                 Команда ВКонтакте
               </InfoRow>
             </Cell>
-          </List>
+          </Group>
         </ModalPage>
 
         <ModalCard
@@ -194,14 +324,12 @@ class App extends React.Component {
           onClose={() => this.setActiveModal(null)}
           icon={<Icon56MoneyTransferOutline />}
           header="Отправляйте деньги друзьям, используя банковскую карту"
-          caption="Номер карты получателя не нужен — он сам решит, куда зачислить средства."
-          actions={[{
-            title: 'Попробовать',
-            mode: 'primary',
-            action: () => {
-              this.setActiveModal(MODAL_CARD_APP_TO_MENU);
-            }
-          }]}
+          subheader="Номер карты получателя не нужен — он сам решит, куда зачислить средства."
+          actions={
+            <Button size="l" mode="primary" onClick={() => this.setActiveModal(MODAL_CARD_APP_TO_MENU)}>
+              Попробовать
+            </Button>
+          }
         >
 
         </ModalCard>
@@ -211,32 +339,25 @@ class App extends React.Component {
           onClose={() => this.setActiveModal(null)}
           icon={<Avatar mode="app" src={getAvatarUrl('app_zagadki', 200)} size={72} />}
           header="Добавить игру «Загадки детства» в меню?"
-          caption="Игра появится под списком разделов на экране меню и будет всегда под рукой."
-          actions={[{
-            title: 'Добавить в меню',
-            mode: 'primary',
-            action: () => {
-              this.setActiveModal(MODAL_CARD_ABOUT);
-            }
+          subheader="Игра появится под списком разделов на экране меню и будет всегда под рукой."
+          actions={
+            <Button size="l" mode="primary" onClick={() => this.setActiveModal(MODAL_CARD_ABOUT)}>
+              Добавить в меню
+            </Button>
           }
-          ]}
         />
 
         <ModalCard
           id={MODAL_CARD_ABOUT}
           onClose={() => this.setActiveModal(null)}
           header="Расскажите о себе"
-          actions={[
-            {
-              title: 'Сохранить',
-              mode: 'primary',
-              action: () => {
-                this.setActiveModal(MODAL_CARD_NOTIFICATIONS);
-              }
-            }
-          ]}
+          actions={
+            <Button size="l" mode="primary" onClick={() => this.setActiveModal(MODAL_CARD_NOTIFICATIONS)}>
+              Сохранить
+            </Button>
+          }
         >
-          <Textarea defaultValue={'В Грузии'} />
+          <Textarea defaultValue="В Грузии" />
         </ModalCard>
 
         <ModalCard
@@ -244,15 +365,14 @@ class App extends React.Component {
           onClose={() => this.setActiveModal(null)}
           icon={<Icon56NotificationOutline />}
           header="Приложение запрашивает разрешение на отправку Вам уведомлений"
-          actions={[{
-            title: 'Запретить',
-            mode: 'secondary',
-            action: () => this.setActiveModal(MODAL_CARD_CHAT_INVITE)
-          }, {
-            title: 'Разрешить',
-            mode: 'primary',
-            action: () => this.setActiveModal(MODAL_CARD_CHAT_INVITE)
-          }]}
+          actions={[
+            <Button key="deny" size="l" mode="secondary" onClick={() => this.setActiveModal(MODAL_CARD_CHAT_INVITE)}>
+              Запретить
+            </Button>,
+            <Button key="allow" size="l" mode="primary" onClick={() => this.setActiveModal(MODAL_CARD_CHAT_INVITE)}>
+              Разрешить
+            </Button>,
+          ]}
         />
 
         <ModalCard
@@ -260,16 +380,15 @@ class App extends React.Component {
           onClose={() => this.setActiveModal(null)}
           icon={<Avatar src={getAvatarUrl('chat_basketball', 200)} size={72} />}
           header="Баскетбол на выходных"
-          caption="Приглашение в беседу"
-          actions={[{
-            title: 'Присоединиться',
-            mode: 'primary',
-            action: () => this.setActiveModal(null)
-          }, {
-            title: 'Скопировать приглашение',
-            mode: 'secondary',
-            action: () => this.setActiveModal(null)
-          }]}
+          subheader="Приглашение в беседу"
+          actions={[
+            <Button key="join" size="l" mode="primary" onClick={() => this.setActiveModal(null)}>
+              Присоединиться
+            </Button>,
+            <Button key="copy" size="l" mode="secondary" onClick={() => this.setActiveModal(null)}>
+              Скопировать приглашение
+            </Button>,
+          ]}
           actionsLayout="vertical"
         >
           <UsersStack
@@ -293,23 +412,27 @@ class App extends React.Component {
       <View activePanel="modals" modal={modal}>
         <Panel id="modals">
           <PanelHeader>Модальные окна</PanelHeader>
-
-          <Group>
-            <FormLayout>
-              <Button size="xl" mode="secondary" onClick={() => this.setActiveModal(MODAL_PAGE_FILTERS)}>
-                  Открыть модальную страницу
-              </Button>
-
-              <Button size="xl" mode="secondary" onClick={() => this.setActiveModal(MODAL_CARD_MONEY_SEND)}>
-                  Открыть модальные карточки
-              </Button>
-            </FormLayout>
-          </Group>
+            <Group>
+              <CellButton onClick={() => this.setActiveModal(MODAL_PAGE_FILTERS)}>
+                Открыть модальную страницу
+              </CellButton>
+              <CellButton multiline onClick={() => this.setActiveModal(MODAL_PAGE_FULLSCREEN)}>
+                Открыть полноэкранную модальную страницу
+              </CellButton>
+              <CellButton multiline onClick={() => this.setActiveModal(MODAL_PAGE_DYNAMIC)}>
+                Открыть модальную страницу с динамической высотой
+              </CellButton>
+              <CellButton onClick={() => this.setActiveModal(MODAL_CARD_MONEY_SEND)}>
+                Открыть модальные карточки
+              </CellButton>
+            </Group>
         </Panel>
       </View>
     );
   }
-}
+}, {
+  viewWidth: true
+}));
 
 <App />
 ```

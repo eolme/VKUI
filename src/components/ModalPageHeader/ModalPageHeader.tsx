@@ -1,8 +1,12 @@
-import React, { FunctionComponent, HTMLAttributes, ReactNode } from 'react';
-import getClassName from '../../helpers/getClassName';
-import classNames from '../../lib/classNames';
-import usePlatform from '../../hooks/usePlatform';
+import { FunctionComponent, HTMLAttributes, ReactNode } from 'react';
+import { getClassName } from '../../helpers/getClassName';
+import { classNames } from '../../lib/classNames';
+import { usePlatform } from '../../hooks/usePlatform';
 import { HasRef } from '../../types';
+import { isPrimitiveReactNode } from '../../lib/utils';
+import { VKCOM } from '../../lib/platform';
+import Separator from '../Separator/Separator';
+import { useAdaptivity } from '../../hooks/useAdaptivity';
 
 export interface ModalPageHeaderProps extends HTMLAttributes<HTMLDivElement>, HasRef<HTMLDivElement> {
   /**
@@ -13,35 +17,45 @@ export interface ModalPageHeaderProps extends HTMLAttributes<HTMLDivElement>, Ha
    * Иконки, отображаемые справа
    */
   right?: ReactNode;
-  noShadow?: boolean;
+  separator?: boolean;
 }
 
 const ModalPageHeader: FunctionComponent<ModalPageHeaderProps> = (props: ModalPageHeaderProps) => {
   const platform = usePlatform();
-  const { className, left, right, children, noShadow, getRef } = props;
-  const isPrimitive = typeof children === 'string' || typeof children === 'number';
+  const { sizeX } = useAdaptivity();
+  const { left, right, children, separator, getRef, ...restProps } = props;
+  const isPrimitive = isPrimitiveReactNode(children);
+  const hasSeparator = separator && platform === VKCOM;
 
   return (
-    <div className={classNames(getClassName('ModalPageHeader', platform), className)} ref={getRef}>
-      <div className="ModalPageHeader__in">
-        <div className="ModalPageHeader__left">
+    <div
+      {...restProps}
+      vkuiClass={classNames(getClassName('ModalPageHeader', platform), `ModalPageHeader--sizeX-${sizeX}`)}
+      ref={getRef}
+    >
+      <div vkuiClass="ModalPageHeader__in">
+        <div vkuiClass="ModalPageHeader__left">
           {left}
         </div>
 
-        <div className="ModalPageHeader__content">
-          <div className="ModalPageHeader__content-in">
+        <div vkuiClass="ModalPageHeader__content">
+          <div vkuiClass="ModalPageHeader__content-in">
             {isPrimitive ? <span>{children}</span> : children}
           </div>
         </div>
 
-        <div className="ModalPageHeader__right">
+        <div vkuiClass="ModalPageHeader__right">
           {right}
         </div>
       </div>
 
-      {!noShadow && <div className="ModalPageHeader__shadow" />}
+      {hasSeparator && <Separator wide vkuiClass="ModalPageHeader__separator" />}
     </div>
   );
+};
+
+ModalPageHeader.defaultProps = {
+  separator: true,
 };
 
 export default ModalPageHeader;

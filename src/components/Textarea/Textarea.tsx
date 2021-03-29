@@ -1,14 +1,18 @@
-import React, { ChangeEvent, ChangeEventHandler, PureComponent, TextareaHTMLAttributes } from 'react';
-import classNames from '../../lib/classNames';
+import { ChangeEvent, ChangeEventHandler, PureComponent, TextareaHTMLAttributes, RefCallback } from 'react';
+import { classNames } from '../../lib/classNames';
 import FormField from '../FormField/FormField';
-import { HasFormLabels, HasFormStatus, HasRef, HasRootRef, OldRef } from '../../types';
+import { HasRef, HasRootRef } from '../../types';
+import { setRef } from '../../lib/utils';
+import { withAdaptivity, AdaptivityProps } from '../../hoc/withAdaptivity';
+import { getClassName, HasPlatform } from '../..';
+import { withPlatform } from '../../hoc/withPlatform';
 
 export interface TextareaProps extends
   TextareaHTMLAttributes<HTMLTextAreaElement>,
   HasRef<HTMLTextAreaElement>,
   HasRootRef<HTMLElement>,
-  HasFormStatus,
-  HasFormLabels {
+  AdaptivityProps,
+  HasPlatform {
   grow?: boolean;
   onResize?(el: HTMLTextAreaElement): void;
   defaultValue?: string;
@@ -19,7 +23,7 @@ export interface TextareaState {
   height?: number;
 }
 
-export default class Textarea extends PureComponent<TextareaProps, TextareaState> {
+class Textarea extends PureComponent<TextareaProps, TextareaState> {
   constructor(props: TextareaProps) {
     super(props);
 
@@ -48,17 +52,9 @@ export default class Textarea extends PureComponent<TextareaProps, TextareaState
     grow: true,
   };
 
-  getRef: OldRef<HTMLTextAreaElement> = (element: HTMLTextAreaElement) => {
+  getRef: RefCallback<HTMLTextAreaElement> = (element) => {
     this.element = element;
-
-    const getRef = this.props.getRef;
-    if (getRef) {
-      if (typeof getRef === 'function') {
-        getRef(element);
-      } else {
-        getRef.current = element;
-      }
-    }
+    setRef(element, this.props.getRef);
   };
 
   resize: VoidFunction = () => {
@@ -119,20 +115,20 @@ export default class Textarea extends PureComponent<TextareaProps, TextareaState
 
   render() {
     const { defaultValue, value, onChange, grow, style, onResize, className,
-      getRootRef, getRef, status, top, bottom, ...restProps } = this.props;
+      getRootRef, getRef, sizeY, platform, ...restProps } = this.props;
 
     const height = this.state.height || style.height || 66;
 
     return (
       <FormField
-        className={classNames('Textarea', className)}
+        vkuiClass={classNames(getClassName('Textarea', platform), `Textarea--sizeY-${sizeY}`)}
+        className={className}
         style={style}
         getRootRef={getRootRef}
-        status={status}
       >
         <textarea
           {...restProps}
-          className="Textarea__el"
+          vkuiClass="Textarea__el"
           value={this.value}
           onChange={this.onChange}
           ref={this.getRef}
@@ -142,3 +138,6 @@ export default class Textarea extends PureComponent<TextareaProps, TextareaState
     );
   }
 }
+export default withPlatform(withAdaptivity(Textarea, {
+  sizeY: true,
+}));

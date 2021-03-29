@@ -1,22 +1,20 @@
-import React, { Component, HTMLAttributes, MouseEventHandler, ReactNode, MouseEvent } from 'react';
-import Button from '../Button/Button';
+import { HTMLAttributes, ReactNode, FC, useContext } from 'react';
 import PanelHeaderButton from '../PanelHeaderButton/PanelHeaderButton';
-import getClassName from '../../helpers/getClassName';
-import classNames from '../../lib/classNames';
-import withInsets from '../../hoc/withInsets';
-import Icon24Dismiss from '@vkontakte/icons/dist/24/dismiss';
+import { getClassName } from '../../helpers/getClassName';
+import { classNames } from '../../lib/classNames';
+import { Icon24Dismiss } from '@vkontakte/icons';
 import { IOS } from '../../lib/platform';
-import { isNumeric } from '../../lib/utils';
-import withPlatform from '../../hoc/withPlatform';
-import { HasChildren, HasInsets, HasPlatform } from '../../types';
+import { hasReactNode } from '../../lib/utils';
+import { withPlatform } from '../../hoc/withPlatform';
+import { HasPlatform } from '../../types';
+import { withAdaptivity, AdaptivityProps, ViewHeight, ViewWidth } from '../../hoc/withAdaptivity';
+import Subhead from '../Typography/Subhead/Subhead';
+import Title from '../Typography/Title/Title';
+import ModalDismissButton from '../ModalDismissButton/ModalDismissButton';
+import ModalRootContext, { useModalRegistry } from '../ModalRoot/ModalRootContext';
+import { ModalType } from '../ModalRoot/types';
 
-export interface ModalCardActionInterface {
-  title: string;
-  action?(event: MouseEvent): void;
-  mode?: 'secondary' | 'primary';
-}
-
-export interface ModalCardProps extends HTMLAttributes<HTMLElement>, HasPlatform, HasChildren, HasInsets {
+export interface ModalCardProps extends HTMLAttributes<HTMLElement>, HasPlatform, AdaptivityProps {
   /**
    * Иконка.
    *
@@ -27,17 +25,19 @@ export interface ModalCardProps extends HTMLAttributes<HTMLElement>, HasPlatform
   /**
    * Заголовок карточки
    */
-  header?: string;
+  header?: ReactNode;
 
   /**
-   * Текст, поясняющий заголовок
+   * Подзаголовок
    */
-  caption?: string;
+  subheader?: ReactNode;
 
   /**
-   * Список кнопок-действий
+   * Кнопки-действия.
+   *
+   * Рекомендуется использовать `<Button size="l" mode="primary" />` или `<Button size="l" mode="secondary" />`
    */
-  actions?: ModalCardActionInterface[];
+  actions?: ReactNode;
 
   /**
    * Тип отображения кнопок: вертикальный или горизонтальный
@@ -47,69 +47,73 @@ export interface ModalCardProps extends HTMLAttributes<HTMLElement>, HasPlatform
   /**
    * Будет вызван при закрытии карточки жестом
    */
-  onClose?(): void;
+  onClose?: VoidFunction;
 }
 
-class ModalCard extends Component<ModalCardProps> {
-  static defaultProps: ModalCardProps = {
-    actions: [],
-    actionsLayout: 'horizontal',
-    insets: {},
-  };
+const ModalCard: FC<ModalCardProps> = (props: ModalCardProps) => {
+  const {
+    icon,
+    header,
+    subheader,
+    children,
+    actions,
+    actionsLayout,
+    onClose,
+    platform,
+    viewWidth,
+    viewHeight,
+    hasMouse,
+    ...restProps
+  } = props;
 
-  onButtonClick: MouseEventHandler = (event: MouseEvent) => {
-    const target = event.currentTarget as HTMLButtonElement;
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    const action = this.props.actions[Number(target.dataset.index)].action;
-    event.persist();
+  const isDesktop = viewWidth >= ViewWidth.SMALL_TABLET && (hasMouse || viewHeight >= ViewHeight.MEDIUM);
+  const canShowCloseBtn = viewWidth >= ViewWidth.SMALL_TABLET;
+  const canShowCloseBtnIos = platform === IOS && !canShowCloseBtn;
 
-    if (typeof action === 'function') {
-      action(event);
-    }
-  };
+  const modalContext = useContext(ModalRootContext);
+  const { refs } = useModalRegistry(props.id, ModalType.CARD);
 
-  render() {
-    const { insets, icon, header, caption, children, actions, actionsLayout, onClose, platform } = this.props;
+  return (
+    <div
+      {...restProps}
+      vkuiClass={classNames(getClassName('ModalCard', platform), {
+        'ModalCard--desktop': isDesktop,
+      })}
+    >
+      <div vkuiClass="ModalCard__in" ref={refs.innerElement}>
+        <div vkuiClass="ModalCard__container">
+          {hasReactNode(icon) && <div vkuiClass="ModalCard__icon">{icon}</div>}
+          {hasReactNode(header) && <Title level="2" weight="semibold" vkuiClass="ModalCard__header">{header}</Title>}
+          {hasReactNode(subheader) && <Subhead weight="regular" vkuiClass="ModalCard__subheader">{subheader}</Subhead>}
 
-    return (
-      <div className={classNames(getClassName('ModalCard', platform))}>
-        <div className="ModalCard__in">
-          <div className="ModalCard__container" style={isNumeric(insets.bottom) ? { marginBottom: insets.bottom } : null}>
-            {icon && <div className="ModalCard__icon">{icon}</div>}
-            {header && <div className="ModalCard__title">{header}</div>}
-            {caption && <div className="ModalCard__caption">{caption}</div>}
+          {children}
 
-            {children}
-
-            {actions.length > 0 &&
-            <div className={classNames('ModalCard__actions', {
-              'ModalCard__actions--v': actionsLayout === 'vertical',
-            })}>
-              {actions.map(({ title, mode }: ModalCardActionInterface, i: number) => {
-                return (
-                  <Button
-                    key={i}
-                    data-index={i}
-                    size="xl"
-                    mode={mode}
-                    onClick={this.onButtonClick}
-                  >
-                    {title}
-                  </Button>
-                );
-              })}
-            </div>
-            }
-
-            {platform === IOS &&
-            <PanelHeaderButton className="ModalCard__dismiss" onClick={onClose}>
-              <Icon24Dismiss />
-            </PanelHeaderButton>}
+          {hasReactNode(actions) &&
+          <div vkuiClass={classNames('ModalCard__actions', {
+            'ModalCard__actions--v': actionsLayout === 'vertical',
+          })}>
+            {actions}
           </div>
+          }
+
+          {canShowCloseBtn && <ModalDismissButton onClick={onClose || modalContext.onClose} />}
+          {canShowCloseBtnIos &&
+          <PanelHeaderButton vkuiClass="ModalCard__dismiss" onClick={onClose || modalContext.onClose}>
+            <Icon24Dismiss />
+          </PanelHeaderButton>
+          }
         </div>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-export default withPlatform(withInsets(ModalCard));
+ModalCard.defaultProps = {
+  actionsLayout: 'horizontal',
+};
+
+export default withAdaptivity(withPlatform(ModalCard), {
+  viewWidth: true,
+  viewHeight: true,
+  hasMouse: true,
+});

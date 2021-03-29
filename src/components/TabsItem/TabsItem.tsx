@@ -1,9 +1,14 @@
-import React, { FunctionComponent, HTMLAttributes, ReactNode } from 'react';
-import getClassName from '../../helpers/getClassName';
-import Tappable, { ACTIVE_EFFECT_DELAY } from '../Tappable/Tappable';
-import classNames from '../../lib/classNames';
-import { IOS } from '../../lib/platform';
-import usePlatform from '../../hooks/usePlatform';
+import { FunctionComponent, HTMLAttributes, ReactNode, useContext } from 'react';
+import { getClassName } from '../../helpers/getClassName';
+import Tappable from '../Tappable/Tappable';
+import { classNames } from '../../lib/classNames';
+import { VKCOM } from '../../lib/platform';
+import { usePlatform } from '../../hooks/usePlatform';
+import { hasReactNode } from '../../lib/utils';
+import { TabsModeContext } from '../Tabs/Tabs';
+import Headline from '../Typography/Headline/Headline';
+import Subhead from '../Typography/Subhead/Subhead';
+import Text from '../Typography/Text/Text';
 
 export interface TabsItemProps extends HTMLAttributes<HTMLElement> {
   after?: ReactNode;
@@ -13,20 +18,27 @@ export interface TabsItemProps extends HTMLAttributes<HTMLElement> {
 const TabsItem: FunctionComponent<TabsItemProps> = ({
   children,
   selected,
-  className,
   after,
   ...restProps
 }: TabsItemProps) => {
   const platform = usePlatform();
+  const mode = useContext(TabsModeContext);
+
+  const TypographyComponent = platform === VKCOM
+    ? Text
+    : mode === 'buttons' || mode === 'segmented'
+      ? Subhead
+      : Headline;
 
   return (
     <Tappable
       {...restProps}
-      className={classNames(getClassName('TabsItem', platform), { 'TabsItem--selected': selected }, className)}
-      activeEffectDelay={platform === IOS ? 0 : ACTIVE_EFFECT_DELAY}
+      vkuiClass={classNames(getClassName('TabsItem', platform), { 'TabsItem--selected': selected })}
+      hasActive={mode === 'segmented'}
+      activeMode="TabsItem--active"
     >
-      <div className="TabsItem__in">{children}</div>
-      {after && <div className="TabsItem__after">{after}</div>}
+      <TypographyComponent vkuiClass="TabsItem__in" weight="medium">{children}</TypographyComponent>
+      {hasReactNode(after) && <div vkuiClass="TabsItem__after">{after}</div>}
     </Tappable>
   );
 };

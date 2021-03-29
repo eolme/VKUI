@@ -1,17 +1,29 @@
 import React, { Component, HTMLAttributes, ReactElement, ReactNode } from 'react';
-import PropTypes, { Requireable, Validator } from 'prop-types';
-import classNames from '../../lib/classNames';
-import getClassName from '../../helpers/getClassName';
-import transitionEvents from '../../lib/transitionEvents';
-import { ANDROID } from '../../lib/platform';
-import withPlatform from '../../hoc/withPlatform';
+import { classNames } from '../../lib/classNames';
+import { getClassName } from '../../helpers/getClassName';
+import { animationEvent } from '../../lib/supportEvents';
+import { ANDROID, VKCOM } from '../../lib/platform';
+import { withPlatform } from '../../hoc/withPlatform';
+import { withContext } from '../../hoc/withContext';
 import { HasPlatform } from '../../types';
+import { ConfigProviderContext, ConfigProviderContextInterface } from '../ConfigProvider/ConfigProviderContext';
+import { SplitColContextProps, SplitColContext } from '../SplitCol/SplitCol';
+import { AppRootPortal } from '../AppRoot/AppRootPortal';
+import { DOMProps, withDOM } from '../../lib/dom';
 
 export interface RootProps extends HTMLAttributes<HTMLDivElement>, HasPlatform {
   activeView: string;
   onTransition?(params: { isBack: boolean; from: string; to: string }): void;
   popout?: ReactNode;
   modal?: ReactNode;
+  /**
+   * @ignore
+   */
+  splitCol?: SplitColContextProps;
+  /**
+   * @ignore
+   */
+  configProvider?: ConfigProviderContextInterface;
 }
 
 export type AnimationEndCallback = (e?: AnimationEvent) => void;
@@ -28,13 +40,7 @@ export interface RootState {
   transition: boolean;
 }
 
-export interface RootContext {
-  document: Requireable<object>;
-  window: Requireable<object>;
-  transitionMotionEnabled: Validator<boolean>;
-}
-
-class Root extends Component<RootProps, RootState> {
+class Root extends Component<RootProps & DOMProps, RootState> {
   constructor(props: RootProps) {
     super(props);
 
@@ -53,22 +59,15 @@ class Root extends Component<RootProps, RootState> {
     popout: null,
   };
 
-  static contextTypes: RootContext = {
-    window: PropTypes.any,
-    document: PropTypes.any,
-    transitionMotionEnabled: PropTypes.bool,
-  };
+  private animationFinishTimeout: ReturnType<typeof setTimeout>;
+  private viewNodes: { [id: string]: HTMLElement } = {};
 
   get document() {
-    return this.context.document || document;
+    return this.props.document;
   }
 
   get window() {
-    return this.context.window || window;
-  }
-
-  get arrayChildren() {
-    return [].concat(this.props.children);
+    return this.props.window;
   }
 
   componentDidUpdate(prevProps: RootProps, prevState: RootState) {
@@ -105,20 +104,26 @@ class Root extends Component<RootProps, RootState> {
 
     // Начался переход
     if (!prevState.transition && this.state.transition) {
-      const prevViewElement = this.document.getElementById(`view-${this.state.prevView}`);
-      const nextViewElement = this.document.getElementById(`view-${this.state.nextView}`);
+      const prevViewElement = this.viewNodes[this.state.prevView];
+      const nextViewElement = this.viewNodes[this.state.nextView];
+      const setPanelScroll = (e: HTMLElement, scroll: number) => {
+        // eslint-disable-next-line no-restricted-properties
+        const pan: HTMLElement | null = e.querySelector('[data-vkui-active-panel=true]');
+        pan && (pan.scrollTop = scroll);
+      };
 
-      prevViewElement.querySelector('.View__panel').scrollTop = this.state.scrolls[this.state.prevView];
+      setPanelScroll(prevViewElement, this.state.scrolls[this.state.prevView]);
 
       if (this.state.isBack) {
-        nextViewElement.querySelector('.View__panel').scrollTop = this.state.scrolls[this.state.nextView];
+        setPanelScroll(nextViewElement, this.state.scrolls[this.state.nextView]);
       }
       this.waitAnimationFinish(this.state.isBack ? prevViewElement : nextViewElement, this.onAnimationEnd);
     }
   }
 
   shouldDisableTransitionMotion(): boolean {
-    return this.context.transitionMotionEnabled === false;
+    return this.props.configProvider.transitionMotionEnabled === false ||
+      !this.props.splitCol.animate;
   }
 
   waitAnimationFinish(elem: HTMLElement, eventHandler: AnimationEndCallback) {
@@ -127,13 +132,12 @@ class Root extends Component<RootProps, RootState> {
       return;
     }
 
-    if (transitionEvents.supported) {
-      const eventName = transitionEvents.prefix ? transitionEvents.prefix + 'AnimationEnd' : 'animationend';
-
-      elem.removeEventListener(eventName, eventHandler);
-      elem.addEventListener(eventName, eventHandler);
+    if (animationEvent.supported) {
+      elem.removeEventListener(animationEvent.name, eventHandler);
+      elem.addEventListener(animationEvent.name, eventHandler);
     } else {
-      setTimeout(eventHandler.bind(this), this.props.platform === ANDROID ? 300 : 600);
+      clearTimeout(this.animationFinishTimeout);
+      this.animationFinishTimeout = setTimeout(eventHandler.bind(this), this.props.platform === ANDROID || this.props.platform === VKCOM ? 300 : 600);
     }
   }
 
@@ -163,28 +167,34 @@ class Root extends Component<RootProps, RootState> {
 
   blurActiveElement() {
     if (typeof this.window !== 'undefined' && this.document.activeElement) {
-      this.document.activeElement.blur();
+      (this.document.activeElement as HTMLElement).blur();
     }
   }
 
   render() {
-    const { popout, modal, platform } = this.props;
+    const {
+      popout, modal, platform,
+      splitCol, configProvider, activeView: _1, onTransition,
+      window, document,
+      ...restProps
+    } = this.props;
     const { transition, isBack, prevView, activeView, nextView } = this.state;
 
-    const Views = this.arrayChildren.filter((view: ReactElement) => {
+    const Views = React.Children.toArray(this.props.children).filter((view: ReactElement) => {
       return this.state.visibleViews.includes(view.props.id);
     });
 
     const baseClassName = getClassName('Root', platform);
+    const disableAnimation = this.shouldDisableTransitionMotion();
 
     return (
-      <div className={classNames(baseClassName, this.props.className, {
-        'Root--transition': transition,
-        'Root--no-motion': this.shouldDisableTransitionMotion(),
+      <div {...restProps} vkuiClass={classNames(baseClassName, {
+        'Root--transition': !disableAnimation && transition,
+        'Root--no-motion': disableAnimation,
       })}>
         {Views.map((view: ReactElement) => {
           return (
-            <div key={view.props.id} id={`view-${view.props.id}`} className={classNames('Root__view', {
+            <div key={view.props.id} ref={(e) => this.viewNodes[view.props.id] = e} vkuiClass={classNames('Root__view', {
               'Root__view--hide-back': view.props.id === prevView && isBack,
               'Root__view--hide-forward': view.props.id === prevView && !isBack,
               'Root__view--show-back': view.props.id === nextView && isBack,
@@ -195,11 +205,17 @@ class Root extends Component<RootProps, RootState> {
             </div>
           );
         })}
-        {!!popout && <div className="Root__popout">{popout}</div>}
-        {!!modal && <div className="Root__modal">{modal}</div>}
+        <AppRootPortal>
+          {!!popout && <div vkuiClass="Root__popout">{popout}</div>}
+          {!!modal && <div vkuiClass="Root__modal">{modal}</div>}
+        </AppRootPortal>
       </div>
     );
   }
 }
 
-export default withPlatform(Root);
+export default withContext(withContext(
+  withPlatform(withDOM<RootProps>(Root)),
+  SplitColContext,
+  'splitCol',
+), ConfigProviderContext, 'configProvider');

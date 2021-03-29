@@ -1,7 +1,11 @@
-import React, { FunctionComponent, HTMLAttributes, ReactNode } from 'react';
-import classNames from '../../lib/classNames';
+import { FC, HTMLAttributes, ReactNode } from 'react';
+import { classNames } from '../../lib/classNames';
+import { hasReactNode } from '../../lib/utils';
+import Title from '../Typography/Title/Title';
+import Headline from '../Typography/Headline/Headline';
+import { HasRootRef } from '../../types';
 
-export interface PlaceholderProps extends HTMLAttributes<HTMLDivElement> {
+export interface PlaceholderProps extends HTMLAttributes<HTMLDivElement>, HasRootRef<HTMLDivElement> {
   /**
    * Иконка
    */
@@ -20,20 +24,30 @@ export interface PlaceholderProps extends HTMLAttributes<HTMLDivElement> {
   stretched?: boolean;
 }
 
-const Placeholder: FunctionComponent<PlaceholderProps> = (props: PlaceholderProps) => {
-  const { className, icon, header, action, children, stretched } = props;
+const Placeholder: FC<PlaceholderProps> = (props: PlaceholderProps) => {
+  const {
+    icon,
+    header,
+    action,
+    children,
+    stretched,
+    getRootRef,
+    ...restProps
+  } = props;
 
   return (
     <div
-      className={classNames('Placeholder', {
+      {...restProps}
+      ref={getRootRef}
+      vkuiClass={classNames('Placeholder', {
         'Placeholder--stretched': stretched,
-      }, className)}
+      })}
     >
-      <div className="Placeholder__in">
-        {icon && <div className="Placeholder__icon">{icon}</div>}
-        {header && <div className="Placeholder__header">{header}</div>}
-        {children && <div className="Placeholder__text">{children}</div>}
-        {action && <div className="Placeholder__action">{action}</div>}
+      <div vkuiClass="Placeholder__in">
+        {hasReactNode(icon) && <div vkuiClass="Placeholder__icon">{icon}</div>}
+        {hasReactNode(header) && <Title level="2" weight="medium" vkuiClass="Placeholder__header">{header}</Title>}
+        {hasReactNode(children) && <Headline weight="regular" vkuiClass="Placeholder__text">{children}</Headline>}
+        {hasReactNode(action) && <div vkuiClass="Placeholder__action">{action}</div>}
       </div>
     </div>
   );

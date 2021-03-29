@@ -1,5 +1,5 @@
 import React, { FunctionComponent, HTMLAttributes } from 'react';
-import classNames from '../../lib/classNames';
+import { classNames } from '../../lib/classNames';
 
 function calcStrokeDashOffset(value: number, radius: number) {
   const progress = value / 100;
@@ -28,13 +28,13 @@ const PullToRefreshSpinner: FunctionComponent<PullToRefreshSpinnerProps> = ({
 
   return (
     <div
-      className={classNames('PullToRefresh__spinner', {
+      vkuiClass={classNames('PullToRefresh__spinner', {
         'PullToRefresh__spinner--on': on,
       })}
       style={style}
     >
       <svg
-        className="PullToRefresh__spinner-self"
+        vkuiClass="PullToRefresh__spinner-self"
         style={{
           width: size,
           height: size,
@@ -50,7 +50,7 @@ const PullToRefreshSpinner: FunctionComponent<PullToRefreshSpinnerProps> = ({
           }}
         >
           <circle
-            className="PullToRefresh__spinner-path"
+            vkuiClass="PullToRefresh__spinner-path"
             fill="none"
             strokeDasharray={dasharray}
             strokeDashoffset={dashoffset}

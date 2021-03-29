@@ -5,11 +5,9 @@
 }
 
 .InfoRow__header {
-  font-size: 14px;
-  line-height: 16px;
-  color: var(--text_secondary);
-  margin-bottom: 4px;
-  text-overflow: ellipsis;
+  margin-bottom: 2px;
+  color: var(--text_subhead);
   overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }

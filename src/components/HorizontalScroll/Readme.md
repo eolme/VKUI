@@ -1,57 +1,59 @@
 Компонент для отрисовки "длинного" содержимого, которое можно скроллить по горизонтали.
 
 ```jsx
-  const itemStyle = {
-    flexShrink: 0,
-    width: 80,
-    height: 94,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    fontSize: 12
-  };
+import { useEffect, useState, Fragment } from 'react';
 
-  <View activePanel="horizontal">
-    <Panel id="horizontal">
-      <PanelHeader>HorizontalScroll</PanelHeader>
-      <Group style={{ paddingBottom: 8 }} header={<Header mode="secondary">Недавние</Header>}>
-        <HorizontalScroll>
-          <div style={{ display: 'flex' }}>
-            <div style={{ ...itemStyle, paddingLeft: 4 }}>
-              <Avatar size={64} style={{ marginBottom: 8 }}><Icon24User /></Avatar>
-              Элджей
+const HorizontalScrollExample = () => {
+  const [recentFriends] = useState(getRandomUsers(20));
+  const [commonFriends, setCommonFriends] = useState([]);
+
+  useEffect(() => {
+    // Эмуляция загрузки
+    setTimeout(() => {
+      setCommonFriends(getRandomUsers(20));
+    }, 500);
+  }, []);
+
+  return (
+    <View activePanel="horizontal">
+      <Panel id="horizontal">
+        <PanelHeader>HorizontalScroll</PanelHeader>
+        <Group header={<Header mode="secondary">Недавние</Header>}>
+          <HorizontalScroll showArrows getScrollToLeft={i => i - 120} getScrollToRight={i => i + 120}>
+            <div style={{ display: 'flex' }}>
+              {recentFriends.map((item) => {
+                return (
+                  <HorizontalCell key={item.id} header={item.first_name}>
+                    <Avatar size={56} src={item.photo_200} />
+                  </HorizontalCell>
+                )
+              })}
             </div>
-            <div style={itemStyle}>
-              <Avatar size={64} style={{ marginBottom: 8 }}><Icon24User /></Avatar>
-              Ольга
+          </HorizontalScroll>
+        </Group>
+
+        <Group header={<Header mode="secondary">Общие друзья</Header>}>
+          <HorizontalScroll showArrows getScrollToLeft={i => i - 120} getScrollToRight={i => i + 120}>
+            <div style={{ display: 'flex' }}>
+              {commonFriends.length === 0 && <PanelSpinner />}
+              {commonFriends.length > 0 &&
+              <Fragment>
+                {commonFriends.map((item) => {
+                  return (
+                    <HorizontalCell key={item.id} header={item.first_name}>
+                      <Avatar size={56} src={item.photo_200} />
+                    </HorizontalCell>
+                  )
+                })}
+              </Fragment>
+              }
             </div>
-            <div style={itemStyle}>
-              <Avatar size={64} style={{ marginBottom: 8 }}><Icon24User /></Avatar>
-              Сергей
-            </div>
-            <div style={itemStyle}>
-              <Avatar size={64} style={{ marginBottom: 8 }}><Icon24User /></Avatar>
-              Илья
-            </div>
-            <div style={itemStyle}>
-              <Avatar size={64} style={{ marginBottom: 8 }}><Icon24User /></Avatar>
-              Алексей
-            </div>
-            <div style={itemStyle}>
-              <Avatar size={64} style={{ marginBottom: 8 }}><Icon24User /></Avatar>
-              Костя
-            </div>
-            <div style={itemStyle}>
-              <Avatar size={64} style={{ marginBottom: 8 }}><Icon24User /></Avatar>
-              Миша
-            </div>
-            <div style={{ ...itemStyle, paddingRight: 4 }}>
-              <Avatar size={64} style={{ marginBottom: 8 }}><Icon24User /></Avatar>
-              Вадим
-            </div>
-          </div>
-        </HorizontalScroll>
-      </Group>
-    </Panel>
-  </View>
+           </HorizontalScroll>
+        </Group>
+      </Panel>
+    </View>
+  );
+};
+
+<HorizontalScrollExample />
 ```

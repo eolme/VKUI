@@ -55,6 +55,7 @@ import { Tooltip, Button } from '@vkontakte/vkui';
             </Group>
             <Group>
               <Tooltip
+                mode="light"
                 text="У нас тут brand new функционал подвезли. Зацените!"
                 isShown={this.state.tooltip}
                 onClose={() => this.setState({ tooltip: false })}
@@ -69,7 +70,7 @@ import { Tooltip, Button } from '@vkontakte/vkui';
             <PanelHeader
               left={
                 <PanelHeaderButton onClick={() => this.setState({ activePanel: 'tooltip' })}>
-                  {osname === ANDROID ? <Icon24Back/> : <Icon28ChevronBack/>}
+                  {(this.props.platform === ANDROID || this.props.platform === VKCOM) ? <Icon24Back/> : <Icon28ChevronBack/>}
                 </PanelHeaderButton>
               }
               right={
@@ -114,5 +115,28 @@ import { Tooltip, Button } from '@vkontakte/vkui';
     }
   }
 
-  <Example />
+  const ExampleWithPlatform = withPlatform(Example);
+
+  <ExampleWithPlatform />
+```
+
+### TooltipContainer
+
+Чтобы использовать тултип без `Panel` / `PanelHeader` / `FixedLayout`:
+- в скроллящемся контейнере — замените какой-нибудь элемент, внутри которого нет скролла, на `<TooltipContainer>` и добавьте ему `position: relative` (или другую не-static).
+- внутри `position: fixed` — `<TooltipContainer fixed>`
+
+```jsx { "props": { "autoLayout": false } }
+<>
+  <TooltipContainer style={{ minHeight: '300vh' }}>
+    <Tooltip text="Я скроллюсь">
+      <Avatar />
+    </Tooltip>
+  </TooltipContainer>
+  <TooltipContainer fixed style={{ position: 'fixed', bottom: 0, width: '100%' }}>
+    <Tooltip alignY='top' text="Я прибит к низу">
+      <Avatar />
+    </Tooltip>
+  </TooltipContainer>
+</>
 ```

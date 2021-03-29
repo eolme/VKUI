@@ -1,67 +1,92 @@
-import React, { Component, HTMLAttributes, ReactNode } from 'react';
-import getClassName from '../../helpers/getClassName';
-import classNames from '../../lib/classNames';
-import withInsets from '../../hoc/withInsets';
-import { isNumeric } from '../../lib/utils';
-import { HasInsets, HasPlatform } from '../../types';
-import { ModalRootContextInterface } from '../ModalRoot/ModalRootContext';
-import withModalRootContext from '../ModalRoot/withModalRootContext';
-import withPlatform from '../../hoc/withPlatform';
+import { FC, HTMLAttributes, ReactNode, useContext, useEffect } from 'react';
+import { getClassName } from '../../helpers/getClassName';
+import { classNames } from '../../lib/classNames';
+import { ModalRootContext, useModalRegistry } from '../ModalRoot/ModalRootContext';
+import { usePlatform } from '../../hooks/usePlatform';
+import { withAdaptivity, AdaptivityProps, ViewHeight, ViewWidth } from '../../hoc/withAdaptivity';
+import ModalDismissButton from '../ModalDismissButton/ModalDismissButton';
+import { Ref } from '../../types';
+import { multiRef } from '../../lib/utils';
+import { ModalType } from '../ModalRoot/types';
 
-export interface ModalPageProps extends HTMLAttributes<HTMLDivElement>, HasInsets, HasPlatform {
-  id: string;
+export interface ModalPageProps extends HTMLAttributes<HTMLDivElement>, AdaptivityProps {
   /**
    * Шапка модальной страницы, `<ModalPageHeader />`
    */
-  header: ReactNode;
-  onClose?(): void;
+  header?: ReactNode;
+  onClose?: VoidFunction;
   /**
-   * Процент, на который изначально будет открыта модальная страница
+   * Процент, на который изначально будет открыта модальная страница. При `settlingHeight={100}` модальная страница раскрывается на всю высоту.
    */
   settlingHeight?: number;
   /**
    * Если высота контента в модальной странице может поменяться, нужно установить это свойство
    */
   dynamicContentHeight?: boolean;
-  /**
-   * @ignore
-   */
-  updateModalHeight?: ModalRootContextInterface['updateModalHeight'];
+  getModalContentRef?: Ref<HTMLDivElement>;
 }
 
-class ModalPage extends Component<ModalPageProps> {
-  componentDidUpdate(prevProps: ModalPageProps) {
-    if (prevProps.children !== this.props.children) {
-      this.props.updateModalHeight();
-    }
-  }
+const ModalPage: FC<ModalPageProps> = (props: ModalPageProps) => {
+  const platform = usePlatform();
+  const { updateModalHeight } = useContext(ModalRootContext);
+  const {
+    children,
+    header,
+    viewWidth,
+    viewHeight,
+    sizeX,
+    hasMouse,
+    onClose,
+    settlingHeight,
+    dynamicContentHeight,
+    getModalContentRef,
+    ...restProps
+  } = props;
 
-  static defaultProps: Partial<ModalPageProps> = {
-    settlingHeight: 75,
-    insets: {},
-  };
+  useEffect(() => {
+    updateModalHeight();
+  }, [children]);
 
-  render() {
-    const { children, className, header, insets, platform } = this.props;
+  const isDesktop = viewWidth >= ViewWidth.SMALL_TABLET && (hasMouse || viewHeight >= ViewHeight.MEDIUM);
+  const canShowCloseBtn = viewWidth >= ViewWidth.SMALL_TABLET;
 
-    return (
-      <div className={classNames(getClassName('ModalPage', platform), className)}>
-        <div className="ModalPage__in-wrap">
-          <div className="ModalPage__in">
-            <div className="ModalPage__header">
-              {header}
-            </div>
+  const modalContext = useContext(ModalRootContext);
+  const { refs } = useModalRegistry(props.id, ModalType.PAGE);
 
-            <div className="ModalPage__content">
-              <div className="ModalPage__content-in" style={isNumeric(insets.bottom) ? { paddingBottom: insets.bottom } : null}>
+  return (
+    <div
+      {...restProps}
+      vkuiClass={classNames(getClassName('ModalPage', platform), `ModalPage--sizeX-${sizeX}`, {
+        'ModalPage--desktop': isDesktop,
+      })}
+    >
+      <div vkuiClass="ModalPage__in-wrap" ref={refs.innerElement}>
+        <div vkuiClass="ModalPage__in">
+          <div vkuiClass="ModalPage__header" ref={refs.headerElement}>
+            {header}
+          </div>
+
+          <div vkuiClass="ModalPage__content-wrap">
+            <div vkuiClass="ModalPage__content" ref={multiRef<HTMLDivElement>(refs.contentElement, getModalContentRef)}>
+              <div vkuiClass="ModalPage__content-in">
                 {children}
               </div>
             </div>
           </div>
+          {canShowCloseBtn && <ModalDismissButton onClick={onClose || modalContext.onClose} />}
         </div>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
-export default withInsets(withPlatform(withModalRootContext(ModalPage)));
+ModalPage.defaultProps = {
+  settlingHeight: 75,
+};
+
+export default withAdaptivity(ModalPage, {
+  viewWidth: true,
+  viewHeight: true,
+  sizeX: true,
+  hasMouse: true,
+});

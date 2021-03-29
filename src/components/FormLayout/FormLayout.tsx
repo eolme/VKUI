@@ -1,19 +1,16 @@
-import React, {
-  Children,
+import {
   FunctionComponent,
-  HTMLAttributes,
-  ReactElement,
+  AllHTMLAttributes,
   FormEvent,
   ElementType,
 } from 'react';
-import getClassName from '../../helpers/getClassName';
-import classNames from '../../lib/classNames';
-import usePlatform from '../../hooks/usePlatform';
-import { HasChildren, HasRef } from '../../types';
+import { getClassName } from '../../helpers/getClassName';
+import { usePlatform } from '../../hooks/usePlatform';
+import { HasRef } from '../../types';
 
 const preventDefault = (e: FormEvent) => e.preventDefault();
 
-export interface FormLayoutProps extends HTMLAttributes<HTMLElement>, HasRef<HTMLElement>, HasChildren {
+export interface FormLayoutProps extends AllHTMLAttributes<HTMLElement>, HasRef<HTMLElement> {
   Component?: ElementType;
 }
 
@@ -21,7 +18,6 @@ const FormLayout: FunctionComponent<FormLayoutProps> = (props: FormLayoutProps) 
   const {
     children,
     Component,
-    className,
     getRef,
     onSubmit,
     ...restProps
@@ -31,32 +27,15 @@ const FormLayout: FunctionComponent<FormLayoutProps> = (props: FormLayoutProps) 
   return (
     <Component
       {...restProps}
-      className={classNames(getClassName('FormLayout', platform), className)}
+      vkuiClass={getClassName('FormLayout', platform)}
       onSubmit={onSubmit}
       ref={getRef}
     >
-      <div className="FormLayout__container">
-        {Children.toArray(children).map((field: ReactElement, i: number) => {
-          if (field) {
-            const { status, top, bottom } = field.props;
-
-            return (
-              <div
-                className={classNames('FormLayout__row', { [`FormLayout__row--s-${status}`]: !!status })}
-                key={field.key || `row-${i}`}
-              >
-                {top && <div className="FormLayout__row-top">{top}</div>}
-                {field}
-                {bottom && <div className="FormLayout__row-bottom">{bottom}</div>}
-              </div>
-            );
-          } else {
-            return null;
-          }
-        })}
+      <div vkuiClass="FormLayout__container">
+        {children}
       </div>
       {Component === 'form' &&
-        <input type="submit" className="FormLayout__submit" value="" />
+        <input type="submit" vkuiClass="FormLayout__submit" value="" />
       }
     </Component>
   );

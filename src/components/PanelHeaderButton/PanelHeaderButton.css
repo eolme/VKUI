@@ -8,7 +8,6 @@
   color: currentColor;
   padding: 0;
   margin: 0;
-  font-size: 17px;
   position: relative;
 }
 
@@ -31,15 +30,13 @@
   position: relative;
   display: flex;
   align-items: center;
-}
-
-.PanelHeaderButton--ios.PanelHeaderButton--primary {
-  font-weight: 600;
+  font-size: 17px;
 }
 
 .PanelHeaderButton--ios.PanelHeaderButton--primitive {
   height: 44px;
   line-height: 44px;
+  padding: 0 12px;
 }
 
 .PanelHeaderButton--ios .Icon--24 {
@@ -50,18 +47,12 @@
   padding: 8px;
 }
 
-.PanelHeaderButton--ios.Tappable--active {
-  opacity: .7;
-}
-
 /*
  * Android
  */
 
 .PanelHeaderButton--android {
   border-radius: 50%;
-  font-weight: 500;
-  font-size: 15px;
 }
 
 .PanelHeaderButton--android.PanelHeaderButton--primitive {
@@ -78,10 +69,35 @@
   padding: 10px;
 }
 
-.PanelHeaderButton--android .Tappable__waves {
-  border-radius: 50%;
+/**
+* VKCOM
+*/
+.PanelHeaderButton--vkcom {
+  color: var(--header_text_secondary);
 }
 
-.PanelHeaderButton--android.Tappable--active {
-  background-color: var(--background_highlighted);
+.PanelHeaderButton--vkcom > :not(.Counter) {
+  transition: opacity .3s;
+  opacity: .7;
+}
+
+.PanelHeaderButton--vkcom.PanelHeaderButton--hover > :not(.Counter),
+.PanelHeaderButton--vkcom.PanelHeaderButton--active > :not(.Counter) {
+  opacity: 1;
+}
+
+.PanelHeaderButton--vkcom {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+}
+
+.PanelHeaderButton--vkcom.PanelHeaderButton--primitive {
+  height: 48px;
+  line-height: 48px;
+  padding: 0 10px;
+}
+
+.PanelHeaderButton--vkcom.PanelHeaderButton--notPrimitive {
+  border-radius: 50%;
 }

@@ -1,9 +1,13 @@
-import React, { FunctionComponent } from 'react';
-import classNames from '../../lib/classNames';
-import Div, { DivProps } from '../Div/Div';
+import { FunctionComponent } from 'react';
+import { DivProps } from '../Div/Div';
+import Caption from '../Typography/Caption/Caption';
 
-const Footer: FunctionComponent<DivProps> = ({ className, children, ...restProps }: DivProps) => {
-  return <Div {...restProps} className={classNames('Footer', className)}>{children}</Div>;
+const Footer: FunctionComponent<DivProps> = ({ children, ...restProps }: DivProps) => {
+  return (
+    <Caption {...restProps} level="1" weight="regular" vkuiClass="Footer">
+      {children}
+    </Caption>
+  );
 };
 
 export default Footer;
