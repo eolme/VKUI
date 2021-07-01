@@ -1,49 +1,41 @@
-.View--android {
-  font-family: var(--font-common);
-}
-
-/**
- * Panel transition
- */
-.View--android .View__panel--next ~ .View__panel--prev {
-  animation: animation-android-prev-back .3s var(--android-easing);
-}
-
-.View--android .View__panel--prev ~ .View__panel--next {
-  animation: animation-android-next-forward .3s var(--android-easing);
-}
-
-.View--android.View--no-motion .View__panel {
-  animation: none;
-}
-
-/**
- * Active panel
- */
-.View--android .View__panel--active::before {
-  content: none;
-}
-
 @keyframes animation-android-prev-back {
   from {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 
   to {
     opacity: 0;
-    transform: translateY(80px);
+    transform: translate3d(0, 80px, 0);
   }
 }
 
 @keyframes animation-android-next-forward {
   from {
     opacity: 0;
-    transform: translateY(80px);
+    transform: translate3d(0, 80px, 0);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
+}
+
+.View--android.View--forward .View__panel--done {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+}
+
+.View--android.View--forward .View__panel--animate {
+  animation: animation-android-next-forward .6s var(--android-easing);
+}
+
+.View--android.View--backward .View__panel--done {
+  opacity: 0;
+  transform: translate3d(0, 80px, 0);
+}
+
+.View--android.View--backward .View__panel--animate {
+  animation: animation-android-prev-back .6s var(--android-easing);
 }
